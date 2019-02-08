@@ -1,12 +1,14 @@
 {
   "name": "graphql-yoga-waterline",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "an easy implementation of the graphql-yoga server, but with Waterline ORM implemented, for easy Setup of DB or FileStore driven APIs",
   "main": "dist/index.js",
   "dependencies": {},
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx rimraf dist && npx babel --out-dir dist src --no-comments --minify"
+  
   },
   "repository": {
     "type": "git",
