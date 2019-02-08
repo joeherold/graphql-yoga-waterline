@@ -5,7 +5,7 @@ const read = async () => {
   const appRoot = process.cwd();
   let global_configuration = {};
 
-  return await new Promise((resolve, reject) => {
+  return await new Promise(async (resolve, reject) => {
     glob(path.join(process.cwd(), "/config/**/*.js"), (err, files) => {
       if (err) {
         reject(err);
@@ -22,6 +22,7 @@ const read = async () => {
       }
       // console.log("global_configuration", global_configuration);
       app.config = { ...global_configuration };
+      // console.log(app.config);
       resolve(app.config);
     });
   });

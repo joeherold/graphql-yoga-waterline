@@ -12,6 +12,7 @@ import server from "./lib/server";
 const options = {
   endpoint: "/"
 };
+
 server
   .lift(options)
   .then(({ server, db, express }) => {

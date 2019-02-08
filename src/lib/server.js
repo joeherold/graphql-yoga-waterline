@@ -14,6 +14,7 @@ import { GraphQLDate, GraphQLTime, GraphQLDateTime } from "graphql-iso-date";
 // console.log(datastores);
 const rootPath = path.resolve(process.cwd()); //path.join(__dirname, "../");
 import parseArgs from "./util/environment/args";
+import ensureFilestructure from "./util/files/filestructure";
 global.app = {
   port: 4000,
   endpoint: "/",
@@ -28,42 +29,29 @@ const lift = async config => {
   // console.log("config: ", app.config);
   // process.exit(0);
   let dbConfig = {
+    adapters: app.config.adapters,
+    datastores: app.config.datastores,
     defaultModelSettings: app.config.models
   };
+
+  await ensureFilestructure(app.root);
+
+  console.log(dbConfig);
   const db = await getDatabase(dbConfig);
 
   if (app.env == "dev") {
     const schema = await getSchemaFromModels(db.models);
-    fs.writeFileSync(
-      path.join(app.root, "api/schema.generated.graphql"),
-      schema
-    );
+    fs.writeFileSync(path.join(app.root, "api/schema/models.graphql"), schema);
   }
-
-  const UserModel = db.model("UserModel");
-  const PetModel = db.model("PetModel");
-  //   console.log(UserModel.attributes);
-
-  const newUser = await UserModel.create({
-    firstName: "Neil",
-    lastName: "Armstrong",
-    email: "j.pichler@webpixels.at"
-  }).fetch();
-
-  const newPet = await PetModel.create({
-    breed: "beagle",
-    type: "dog",
-    name: "Astro",
-    owner: newUser.id
-  }).fetch();
 
   // const genTypeDefs = path.join(app.root, "api/schema.generated.graphql");
   const genTypeDefs = fs.readFileSync(
-    path.join(app.root, "api/schema.generated.graphql"),
+    path.join(app.root, "api/schema/models.graphql"),
     "utf8"
   );
+
   const typeDefs = fs.readFileSync(
-    path.join(app.root, "api/schema.graphql"),
+    path.join(app.root, "api/schema/schema.graphql"),
     "utf8"
   );
   // init the application
