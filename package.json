@@ -1,14 +1,20 @@
 {
   "name": "graphql-yoga-waterline",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "an easy implementation of the graphql-yoga server, but with Waterline ORM implemented, for easy Setup of DB or FileStore driven APIs",
   "main": "dist/index.js",
   "dependencies": {},
-  "devDependencies": {},
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-minify": "^0.5.0",
+    "babel-preset-node8": "^1.2.0",
+    "dotenv": "^6.2.0",
+    "nodemon": "^1.18.9",
+    "rimraf": "^2.6.3"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx rimraf dist && npx babel --out-dir dist src --no-comments --minify"
-  
   },
   "repository": {
     "type": "git",
@@ -25,5 +31,14 @@
   "bugs": {
     "url": "https://github.com/joeherold/graphql-yoga-waterline/issues"
   },
-  "homepage": "https://github.com/joeherold/graphql-yoga-waterline#readme"
+  "homepage": "https://github.com/joeherold/graphql-yoga-waterline#readme",
+  "babel": {
+    "presets": [
+      "node8",
+      "minify"
+    ]
+  },
+  "engines": {
+    "node": ">=8"
+  }
 }
