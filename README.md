@@ -1,4 +1,4 @@
-<img title="graphql-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/GraphQL_Logo.svg/512px-GraphQL_Logo.svg.png" width="auto" height="150">
+<img title="graphql-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/GraphQL_Logo.svg/512px-GraphQL_Logo.svg.png" width="auto" height="250">
 
 # graphql-yoga-waterline
 
