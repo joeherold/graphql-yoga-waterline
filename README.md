@@ -18,7 +18,9 @@ const yogaServer = require("graphql-yoga-waterline");
 
   // config für server
   const bootOpts = {
-    endpoint: "/"
+    endpoint: "/graphql",
+    port: 4000,
+    playground: false
   };
   const server = await yogaServer(graphQLServerOpts);
 
