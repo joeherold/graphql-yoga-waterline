@@ -48,6 +48,8 @@ Here are a few highlights:
 - REST API (Generic)
 - ...[see more here](https://sailsjs.com/documentation/concepts/extending-sails/adapters/available-adapters#communitysupported-database-adapters)
 
+### Injection of Waterline ORM in Resolver Context
+
 ```js
 // a resolver example with injected Waterline ORM
 Query = {
@@ -56,6 +58,31 @@ Query = {
      return UserModel.find();
   }
 }
+```
+
+### Auto generation of Model Schemas based on your Waterline Models
+
+During the fist boot of the app, a folder structure ist created in your project root.
+
+```text
+root/
+  api/
+    models/
+    policies/
+    resolvers/
+      index.js
+    schema/
+      models.graphql
+      schema.graphql
+
+  config/
+    adapter.js
+    bootstrap.js
+    datastores.js
+    models.js
+    settings.js
+
+  yourApp.js // this file is not generated
 ```
 
 ## Usage
