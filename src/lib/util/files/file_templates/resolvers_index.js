@@ -1,7 +1,7 @@
 const resolvers = {
   Query: {
     // user: async (_, args, ctx) => {
-    //   const UserModel = ctx.db.model("UserModel");
+    //   const UserModel = ctx.db.model("User");
     //   const arrUsers = await UserModel.find();
 
     //   return arrUsers;

@@ -1,25 +1,21 @@
-/**
- * app.js
- *
- * Use `app.js` to run your app.
- * To start the server, run: `npx babel-node app.js`.
- *
- * The same command-line arguments and env vars are supported, e.g.:
- * `NODE_ENV=prod PORT=80 npm start`
- */
-import { inspect } from "util";
-import server from "./lib/server";
-const options = {
-  endpoint: "/"
-};
+const gqlYogaWaterlineServer = require("./index");
 
-const server = server();
-server.start();
-server
-  .lift(options)
-  .then(({ server, db, express }) => {
-    // console.log(inspect(db.models.pet.schema, true, 1));
-  })
-  .catch(err => {
-    console.error(err);
+// use async / await for more easy reading
+(async () => {
+  // config für gql
+  const gqlServer = {};
+
+  // config für server
+  const bootOptions = {
+    endpoint: "/"
+  };
+  const server = await gqlYogaWaterlineServer(gqlServer);
+
+  const express = server.express;
+  express.use("/myEndpoint", (req, res) => {
+    res.send("OK");
   });
+
+  const result = await server.boot(bootOptions);
+  console.log(`Server is running on port: ${result.port}`);
+})();

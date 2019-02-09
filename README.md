@@ -1,6 +1,59 @@
 # graphql-yoga-waterline
 
-an easy implementation of the graphql-yoga server, but with Waterline ORM implemented, for easy Setup of DB or FileStore driven APIs
+Fully-featured GraphQL Server with focus on easy setup, performance & great developer experience
+
+## Overview
+
+[<img title="waterline-logo" src="http://i.imgur.com/3Xqh6Mz.png" width="610px" alt="Waterline logo"/>](http://waterlinejs.org)
+An easy implementation of the [graphql-yoga](https://github.com/prisma/graphql-yoga) server, but enhanced with an super easy usage of the great [Waterline ORM](http://waterlinejs.org/).
+
+## Features
+
+Build your Models as used with Sails.JS.
+Auto Generation auf Model Schemas during Boot
+Resolver Context is enhanced with Waterline ORM instance `ctx.db`
+Usage or Waterline Adapters (Official and Community)
+
+### Officially-supported database adapters
+
+- MySQL
+- PostgreSQL
+- MongoDB
+- Local disk / memory
+- ...[see more here](https://sailsjs.com/documentation/concepts/extending-sails/adapters/available-adapters)
+
+### Community-supported database adapters:
+
+Is your database not supported by one of the core adapters? Good news! There are many different community database adapters for Sails.js and Waterline [available on NPM](https://www.npmjs.com/search?q=sails+adapter).
+
+Here are a few highlights:
+
+- Redis
+- MS SQL Server
+- OrientDB
+- Oracle
+- Oracle (AnyPresence)
+- Oracle (stored procedures)
+- SAP HANA DB
+- SAP HANA (AnyPresence)
+- IBM DB2
+- ServiceNow SOAP
+- Cassandra
+- Solr
+- FileMaker Database
+- Apache Derby
+- REST API (Generic)
+- ...[see more here](https://sailsjs.com/documentation/concepts/extending-sails/adapters/available-adapters#communitysupported-database-adapters)
+
+```js
+// a resolver example with injected Waterline ORM
+Query = {
+ myResolver = async (_, args, ctx) => {
+     const UserModel = ctx.db.model("User");
+     return UserModel.find();
+  }
+}
+```
 
 ## Usage
 
