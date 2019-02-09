@@ -1,3 +1,5 @@
+<img title="graphql-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/GraphQL_Logo.svg/512px-GraphQL_Logo.svg.png" width="auto" height="150">
+
 # graphql-yoga-waterline
 
 Fully-featured GraphQL Server with focus on easy setup, performance & great developer experience
@@ -5,6 +7,7 @@ Fully-featured GraphQL Server with focus on easy setup, performance & great deve
 ## Overview
 
 [<img title="waterline-logo" src="http://i.imgur.com/3Xqh6Mz.png" width="610px" alt="Waterline logo"/>](http://waterlinejs.org)
+
 An easy implementation of the [graphql-yoga](https://github.com/prisma/graphql-yoga) server, but enhanced with an super easy usage of the great [Waterline ORM](http://waterlinejs.org/).
 
 ## Features
