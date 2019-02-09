@@ -23,7 +23,7 @@ global.app = {
 };
 parseArgs(app);
 
-const lift = async config => {
+const lift = async (graphQlServerConfig, startOpt) => {
   process.title = "GraphQL Waterline Server";
   await configReader();
   // console.log("config: ", app.config);
@@ -36,7 +36,7 @@ const lift = async config => {
 
   await ensureFilestructure(app.root);
 
-  console.log(dbConfig);
+  // console.log(dbConfig);
   const db = await getDatabase(dbConfig);
 
   if (app.env == "dev") {
@@ -54,32 +54,75 @@ const lift = async config => {
     path.join(app.root, "api/schema/schema.graphql"),
     "utf8"
   );
+
   // init the application
   let resolvers = require(path.join(app.root, "api/resolvers"));
-  const server = new GraphQLServer({
-    typeDefs: [
-      ...OKGScalarDefinitions,
-      // "scalar Date\nscalar Time\n",
-      // "scalar GraphQLDate\nscalar GraphQLDateTime scalar GraphQLTime\n",
-      genTypeDefs + "\n" + typeDefs
-    ],
+
+  let default_graphQlServerConfig = {
+    typeDefs: [...OKGScalarDefinitions, genTypeDefs + "\n" + typeDefs],
     resolvers: {
       ...OKGGraphQLScalars,
-      // Date: GraphQLDate,
-      // DateTime: GraphQLDateTime,
-      // Time: GraphQLTime,
       ...resolvers
     },
-    context: request => {
+    resolverValidationOptions: undefined,
+    // schema: null, // not supported yet...
+    mocks: undefined,
+    context: req => {
       return {
-        ...request,
-        db: db
+        ...req,
+        db
       };
-    }
-  });
+    },
+    schemaDirectives: undefined,
+    middlewares: []
+  };
+
+  let qlConfig = {
+    typeDefs: [
+      ...default_graphQlServerConfig.typeDefs,
+      ...(graphQlServerConfig.typeDefs || [])
+    ],
+    resolvers: {
+      ...default_graphQlServerConfig.resolvers,
+      ...(graphQlServerConfig.resolvers || {})
+    },
+    resolverValidationOptions:
+      graphQlServerConfig.resolverValidationOptions || undefined,
+    // schema not supported yet
+    mocks: graphQlServerConfig.mocks || undefined,
+    context: attr => {
+      if (typeof graphQlServerConfig.context === "function") {
+        return default_graphQlServerConfig.context(
+          graphQlServerConfig.context(attr)
+        );
+      } else if (typeof graphQlServerConfig.context === "object") {
+        return default_graphQlServerConfig.context({
+          ...attr,
+          ...graphQlServerConfig.context
+        });
+      } else {
+        return default_graphQlServerConfig.context(attr);
+      }
+    },
+    // schemaDirectives: {
+    //   ...default_graphQlServerConfig.schemaDirectives,
+    //   ...(graphQlServerConfig.schemaDirectives || undefined)
+    // },
+    schemaDirectives: graphQlServerConfig.schemaDirectives || undefined,
+    middlewares: [
+      ...default_graphQlServerConfig.middlewares,
+      ...(graphQlServerConfig.middlewares || [])
+    ]
+  };
+
+  console.log(qlConfig);
+  // process.exit(1);
+
+  const server = new GraphQLServer(qlConfig);
   server.start(
     {
-      port: app.port
+      port: app.port,
+      ...startOpt
     },
     () => console.log(`Server is running on localhost:${app.port}`)
   );

@@ -4,7 +4,6 @@ import path from "path";
 export const generateModelsFromFiles = async () => {
   // placeholder for model instantiation values
 
-  process.exit(1);
   let validatedModels = {};
   // load all models into the scope
   // therefore we glob over the file and store the paths in an
@@ -46,6 +45,7 @@ export const generateModelsFromFiles = async () => {
       delete readModel["identity"];
       // identity = "" + readModel["identity"];
     }
+
     // validatedModels[identity] = readModel; //{ ...readModel };
 
     validatedModels[identity] = normalizeModelDefs(readModel); //{ ...readModel };

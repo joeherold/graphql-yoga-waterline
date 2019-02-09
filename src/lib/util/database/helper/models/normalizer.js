@@ -8,8 +8,6 @@ export const normalizeModelDefs = inModel => {
   /**
    * VALIDATE IDENTITY
    */
-  // console.log(inModel);
-  process.exit(1);
 
   const model = { ...inModel };
   var PROPS_TO_AUTOMIGRATE = ["autoIncrement", "unique", "columnType"];
@@ -80,3 +78,5 @@ export const normalizeModelDefs = inModel => {
 
   return { ...model };
 };
+
+export default normalizeModelDefs;
