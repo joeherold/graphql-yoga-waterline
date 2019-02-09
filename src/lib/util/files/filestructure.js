@@ -111,4 +111,12 @@ export default async rootPath => {
     path.join(rootPath, "/config/models.js"),
     modelsData
   );
+
+  const settingsData = await readFileAtPath(
+    path.join(__dirname, "file_templates/settings.js")
+  );
+  await generateFileAtPathWithContent(
+    path.join(rootPath, "/config/settings.js"),
+    settingsData
+  );
 };

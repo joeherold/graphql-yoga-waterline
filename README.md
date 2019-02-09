@@ -4,26 +4,42 @@ an easy implementation of the graphql-yoga server, but with Waterline ORM implem
 
 ## Usage
 
+The module returns a Promise. So it is easy to imolement in an asynchronus stack. Event with async / await.
+the promise is resolved with: `{server, db, express}`.
+So you have access to the server-instsance, de Waterline ORM and the express-application.
+
 ```js
 const yogaServer = require("graphql-yoga-waterline");
 
-const graphQLServerOpts = {...}
-const bootOpts = {...};
+// use async / await for more easy reading
+(async () => {
+  // config für gql
+  const graphQLServerOpts = {};
 
-yogaServer
-  .start(graphQLServerOpts, bootOpts)
-  .then(({ server, db, express }) => {
-    // console.log(inspect(db.models.pet.schema, true, 1));
-  })
-  .catch(err => {
-    console.error(err);
+  // config für server
+  const bootOpts = {
+    endpoint: "/"
+  };
+  const server = await yogaServer(graphQLServerOpts);
+
+  // get express instance
+  const express = server.express;
+
+  // modify express instance
+  express.use("/myEndpoint", (req, res) => {
+    res.send("OK");
   });
+
+  // boot the server and thet the result
+  const { port } = await server.boot(bootOpts);
+  console.log(`Server is running on port: ${port}`);
+})();
 ```
 
 ### graphQlServerConfig
 
 ```js
-var aContextServiceProvoder = requrie("my-service-provider");
+var aContextServiceProcvoder = requrie("my-service-provider");
 
 // for furthor information see: https://github.com/prisma/graphql-yoga#graphqlserver
 

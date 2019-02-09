@@ -13,6 +13,8 @@ const options = {
   endpoint: "/"
 };
 
+const server = server();
+server.start();
 server
   .lift(options)
   .then(({ server, db, express }) => {

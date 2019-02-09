@@ -19,11 +19,12 @@ global.app = {
   port: 4000,
   endpoint: "/",
   root: rootPath,
+
   env: "dev"
 };
 parseArgs(app);
 
-const lift = async (graphQlServerConfig, startOpt) => {
+const lift = async (graphQlServerConfig = {}) => {
   process.title = "GraphQL Waterline Server";
   await configReader();
   // console.log("config: ", app.config);
@@ -115,25 +116,51 @@ const lift = async (graphQlServerConfig, startOpt) => {
     ]
   };
 
-  console.log(qlConfig);
+  // console.log(qlConfig);
   // process.exit(1);
 
   const server = new GraphQLServer(qlConfig);
-  server.start(
-    {
-      port: app.port,
-      ...startOpt
-    },
-    () => console.log(`Server is running on localhost:${app.port}`)
-  );
-  return {
-    server,
-    db,
-    express: server.express
+  let defBootOpts = {
+    port: app.port,
+    endpoint: app.endpoint,
+    subscriptions: false,
+    playground: "/",
+    defaultPlaygroundQuery: undefined,
+    uploads: undefined,
+    https: undefined,
+    getEndpoint: false,
+    deduplicator: true
   };
-};
 
-export default {
-  boot: opts => lift(opts),
-  lift: opts => lift(opts)
+  // server.start(
+  //   {
+  //     port: app.port,
+  //     ...startOpt
+  //   },
+  //   () => console.log(`Server is running on localhost:${app.port}`)
+  // );
+  server["db"] = db;
+  server["waterline"] = db;
+  server["orm"] = db;
+  server["boot"] = bootParams =>
+    new Promise((resolve, reject) => {
+      if (bootParams) {
+        defBootOpts = { ...defBootOpts, ...bootParams };
+      }
+      server.start(defBootOpts, () => {
+        resolve(defBootOpts);
+      });
+    });
+  return server;
+  // return {
+  //   server,
+  //   db,
+  //   express: server.express
+  // };
 };
+export default lift;
+
+// export default {
+//   boot: opts => lift(opts),
+//   lift: opts => lift(opts)
+// };
