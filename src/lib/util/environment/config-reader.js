@@ -1,31 +1,46 @@
 import glob from "glob";
 import path from "path";
+import _ from "lodash";
 
-const read = async () => {
-  const appRoot = process.cwd();
-  let global_configuration = {};
+const read = async app => {
+  // console.info("\nreading config from files:\n");
 
-  return await new Promise(async (resolve, reject) => {
-    glob(path.join(process.cwd(), "/config/**/*.js"), (err, files) => {
+  let newConfig = await new Promise(async (resolve, reject) => {
+    let global_configuration = {};
+
+    glob(path.join(app.root, "/config/**/*.js"), (err, files) => {
       if (err) {
         reject(err);
       }
       if (files) {
-        //   console.log(files);
         for (let file of files) {
           const conf = require.resolve(file);
-          const theConf = require(conf);
-          global_configuration = { ...global_configuration, ...theConf };
-          // console.log(conf, theConf);
+          let theConf = require(conf);
+          // console.log("theConf of file: ", file);
+          // console.log(theConf);
+          // console.log("\n");
+          if (!_.isEmpty(theConf)) {
+            theConf = _.mapValues(theConf, val => {
+              if (_.isEmpty(val)) return undefined;
+              return val;
+            });
+
+            global_configuration = _.defaultsDeep(
+              global_configuration,
+              theConf
+            );
+          }
+
+          // global_configuration = _.defaults(global_configuration, theConf); //{ ...global_configuration, ...theConf };
         }
-        //   resolve(files);
       }
-      // console.log("global_configuration", global_configuration);
-      app.config = { ...global_configuration };
-      // console.log(app.config);
+      // app.config = { ...global_configuration };
+      app.config = _.defaultsDeep(app.config, { ...global_configuration });
       resolve(app.config);
     });
   });
+  // console.log(newConfig);
+  return newConfig;
 };
 
 export default read;

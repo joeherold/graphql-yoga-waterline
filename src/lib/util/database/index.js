@@ -9,15 +9,35 @@ import { generateModelsFromFiles } from "./helper/models/builder";
  * @param {*} opts
  */
 export const getDatabase = async (opts = {}) => {
+  // console.log("getDatabase(opts), opts=", opts);
   let datastores, adapters, defaultModelSettings;
   if (typeof opts !== "object") {
     throw new Error(
       "Configuration Options for Waterline Database must be of type object {}"
     );
   }
-  datastores = opts["datastores"] || { default: { adapter: "sails-disk" } };
-  adapters = opts["adapters"] || { "sails-disk": sailsDiskAdapter };
-  defaultModelSettings = opts["defaultModelSettings"] || {};
+
+  // if (opts["datastores"]) {
+  datastores = _.defaultsDeep(datastores, opts["datastores"] || {}, {
+    default: { adapter: "sails-disk" }
+  });
+  // }
+
+  // if (opts["adapters"]) {
+  adapters = _.defaultsDeep(adapters, opts["adapters"] || {}, {
+    "sails-disk": sailsDiskAdapter
+  });
+  // }
+
+  if (opts["defaultModelSettings"]) {
+    defaultModelSettings = _.defaultsDeep(
+      defaultModelSettings,
+      {
+        migrate: false
+      },
+      opts["defaultModelSettings"]
+    );
+  }
 
   let config = {
     adapters,
@@ -26,6 +46,7 @@ export const getDatabase = async (opts = {}) => {
     defaultModelSettings
   };
 
+  // console.log("config: ", config);
   const orm = await new Promise((resolve, reject) => {
     // console.log(config);
     // process.exit(0);
@@ -55,16 +76,17 @@ export const getDatabase = async (opts = {}) => {
 
   app.models = orm.collections;
   app.model = identity => {
-    identity = identity.replace("Model", "").toLowerCase();
+    identity = identity.replace("", "").toLowerCase();
     return orm.collections[identity];
   };
   app.datastores = orm.datastores;
   app.waterline = orm;
   return {
+    orm: orm,
     models: orm.collections,
     datastores: orm.datastores,
     model: identity => {
-      identity = identity.replace("Model", "").toLowerCase();
+      identity = identity.replace("", "").toLowerCase();
       return Waterline.getModel(identity, orm);
       return waterlineInstance.collections[identity];
     }

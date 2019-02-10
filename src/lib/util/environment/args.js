@@ -1,5 +1,6 @@
 const argv = require("yargs").argv;
 export default app => {
+  // console.info("prsing args provided via ENV");
   let nodEnv = "dev";
   if (process.env.NODE_ENV) {
     switch (process.env.NODE_ENV) {
@@ -25,15 +26,15 @@ export default app => {
   }
 
   if (argv.port) {
-    app.port = argv.port;
+    app.config.settings.port = argv.port;
   }
   if (process.env.PORT) {
-    app.port = process.env.PORT;
+    app.config.settings.port = process.env.PORT;
   }
   if (argv.port) {
-    app.port = argv.port;
+    app.config.settings.port = argv.port;
   }
   if (argv.endpoint) {
-    app.endpoint = argv.endpoint;
+    app.config.settings.endpoint = argv.endpoint;
   }
 };

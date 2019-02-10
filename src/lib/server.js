@@ -1,34 +1,60 @@
 // entry file
 import { GraphQLServer } from "graphql-yoga";
 
-import { getDatabase } from "./util/database";
-import { getSchemaFromModels } from "./util/graphql/schema-generator";
-import configReader from "./util/environment/config-reader";
 import path from "path";
 import fs from "fs";
+import _ from "lodash";
+
 import OKGGraphQLScalars, {
   OKGScalarDefinitions
 } from "@okgrow/graphql-scalars";
-import { GraphQLDate, GraphQLTime, GraphQLDateTime } from "graphql-iso-date";
-// import datastores from "../config/datastores";
-// console.log(datastores);
-const rootPath = path.resolve(process.cwd()); //path.join(__dirname, "../");
+
+import { getDatabase } from "./util/database";
+import { getSchemaFromModels } from "./util/graphql/schema-generator";
+import configReader from "./util/environment/config-reader";
 import parseArgs from "./util/environment/args";
 import ensureFilestructure from "./util/files/filestructure";
+
+const rootPath = path.resolve(process.cwd());
 global.app = {
-  port: 4000,
-  endpoint: "/",
   root: rootPath,
 
-  env: "dev"
+  env: "dev",
+  config: {
+    adapters: undefined,
+    datastores: undefined,
+    models: {
+      attributes: undefined,
+      migrate: "alter",
+      schema: false,
+      datastore: "default",
+      primaryKey: "id",
+      archiveModelIdentity: "archive"
+    },
+    bootstrap: undefined,
+    settings: {
+      port: 4000,
+      endpoint: "/",
+      subscriptions: false,
+      playground: "/",
+      defaultPlaygroundQuery: undefined,
+      uploads: undefined,
+      https: undefined,
+      getEndpoint: false,
+      deduplicator: true
+    }
+  }
 };
-parseArgs(app);
 
-const lift = async (graphQlServerConfig = {}) => {
+const boot = async (graphQlServerConfig = {}) => {
   process.title = "GraphQL Waterline Server";
-  await configReader();
-  // console.log("config: ", app.config);
-  // process.exit(0);
+  // console.log(app);
+
+  const config = await configReader(app);
+
+  app.config = _.defaultsDeep(app.config, config);
+  parseArgs(app);
+  // console.log(app);
   let dbConfig = {
     adapters: app.config.adapters,
     datastores: app.config.datastores,
@@ -71,7 +97,8 @@ const lift = async (graphQlServerConfig = {}) => {
     context: req => {
       return {
         ...req,
-        db
+        db,
+        getModel: db.model
       };
     },
     schemaDirectives: undefined,
@@ -105,10 +132,7 @@ const lift = async (graphQlServerConfig = {}) => {
         return default_graphQlServerConfig.context(attr);
       }
     },
-    // schemaDirectives: {
-    //   ...default_graphQlServerConfig.schemaDirectives,
-    //   ...(graphQlServerConfig.schemaDirectives || undefined)
-    // },
+
     schemaDirectives: graphQlServerConfig.schemaDirectives || undefined,
     middlewares: [
       ...default_graphQlServerConfig.middlewares,
@@ -116,29 +140,22 @@ const lift = async (graphQlServerConfig = {}) => {
     ]
   };
 
-  // console.log(qlConfig);
-  // process.exit(1);
-
   const server = new GraphQLServer(qlConfig);
-  let defBootOpts = {
-    port: app.port,
-    endpoint: app.endpoint,
-    subscriptions: false,
-    playground: "/",
-    defaultPlaygroundQuery: undefined,
-    uploads: undefined,
-    https: undefined,
-    getEndpoint: false,
-    deduplicator: true
-  };
+  let defBootOpts = _.defaultsDeep(
+    {
+      port: 4000,
+      endpoint: "/",
+      subscriptions: false,
+      playground: "/",
+      defaultPlaygroundQuery: undefined,
+      uploads: undefined,
+      https: undefined,
+      getEndpoint: false,
+      deduplicator: true
+    },
+    app.config.settings
+  );
 
-  // server.start(
-  //   {
-  //     port: app.port,
-  //     ...startOpt
-  //   },
-  //   () => console.log(`Server is running on localhost:${app.port}`)
-  // );
   server["db"] = db;
   server["waterline"] = db;
   server["orm"] = db;
@@ -152,15 +169,5 @@ const lift = async (graphQlServerConfig = {}) => {
       });
     });
   return server;
-  // return {
-  //   server,
-  //   db,
-  //   express: server.express
-  // };
 };
-export default lift;
-
-// export default {
-//   boot: opts => lift(opts),
-//   lift: opts => lift(opts)
-// };
+export default boot;
