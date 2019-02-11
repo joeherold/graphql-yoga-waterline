@@ -66,8 +66,8 @@ export default app => {
     "deduplicator"
   ];
   for (let opt of possibleOverwrite) {
+    let settingsKey = opt;
     if (argv[opt]) {
-      let settingsKey = opt;
       if (opt == "p") {
         settingsKey = "port";
       }
