@@ -2,7 +2,7 @@
 .tmp
 config/local.js
 dist
-
+.vscode
 
 # Logs
 logs
