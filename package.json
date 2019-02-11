@@ -3,6 +3,9 @@
   "version": "0.0.6",
   "description": "an easy implementation of the graphql-yoga server, but with Waterline ORM implemented, for easy Setup of DB or FileStore driven APIs",
   "main": "dist/index.js",
+  "bin": {
+    "graphql-yoga-waterline": "./dist/lib/cli.js"
+  },
   "dependencies": {
     "@okgrow/graphql-scalars": "^0.4.3",
     "async": "^2.6.1",
@@ -13,6 +16,7 @@
     "lodash": "^4.17.11",
     "mkdirp": "^0.5.1",
     "sails-disk": "^1.1.0",
+    "template-file": "^3.0.1",
     "waterline": "^0.13.6",
     "waterline-utils": "^1.4.2",
     "yargs": "^12.0.5"
@@ -28,8 +32,9 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx rimraf dist && npx babel --out-dir dist src",
-    "build:minify": "npx rimraf dist && npx babel --out-dir dist src --no-comments --minify",
+    "build": "npx rimraf dist && npx babel --out-dir dist src && npm run copy:templates",
+    "copy:templates": "cp -R ./src/templates ./dist/templates",
+    "build:minify": "npx rimraf dist && npx babel --out-dir dist src --no-comments --minify && npm run copy:templates",
     "prepublish": "npm run build"
   },
   "repository": {
