@@ -3,6 +3,7 @@
 config/local.js
 dist
 .vscode
+./lib/
 
 # Logs
 logs

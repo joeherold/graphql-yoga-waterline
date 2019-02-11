@@ -2,7 +2,7 @@
   "name": "graphql-yoga-waterline",
   "version": "0.0.8",
   "description": "An easy to use implementation of the graphql-yoga server, but with Waterline ORM implemented, for easy setup of db or filestore driven APIs",
-  "main": "dist/index.js",
+  "main": "lib/index.js",
   "dependencies": {
     "@okgrow/graphql-scalars": "^0.4.3",
     "async": "^2.6.1",
@@ -30,9 +30,9 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx rimraf dist && npx babel --out-dir dist src && npm run copy:templates",
-    "copy:templates": "cp -R ./src/templates ./dist/templates",
-    "build:minify": "npx rimraf dist && npx babel --out-dir dist src --no-comments --minify && npm run copy:templates",
+    "build": "npx rimraf dist && npx babel --out-dir lib src && npm run copy:templates",
+    "copy:templates": "cp -R ./src/templates ./lib/templates",
+    "build:minify": "npx rimraf dist && npx babel --out-dir lib src --no-comments --minify && npm run copy:templates",
     "prepublish": "npm run build"
   },
   "repository": {

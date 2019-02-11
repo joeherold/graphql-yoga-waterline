@@ -1,3 +1,3 @@
-import server from "./lib/server";
+import server from "./util/server";
 
 module.exports = server;
