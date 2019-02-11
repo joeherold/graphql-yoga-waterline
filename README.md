@@ -55,7 +55,7 @@ Here are a few highlights:
 Query = {
  myResolver = async (_, args, ctx) => {
      const UserModel = ctx.db.model("User");
-     return UserModel.find();
+     return await UserModel.find();
   }
 }
 ```
@@ -156,7 +156,7 @@ let graphQLServerOpts = {
   // so e.g:
   // myResolver = async (_, args, ctx) => {
   //    const UserModel = ctx.db.model("User");
-  //    return UserModel.find();
+  //    return await UserModel.find();
   // }
   context: req => {
     return {
