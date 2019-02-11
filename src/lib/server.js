@@ -16,9 +16,11 @@ import parseArgs from "./util/environment/args";
 import ensureFilestructure from "./util/files/filestructure";
 
 const rootPath = path.resolve(process.cwd());
+// define the default global object
 global.app = {
+  debug: false,
   root: rootPath,
-
+  processTitle: "GraphQL Waterline Server",
   env: "dev",
   config: {
     adapters: undefined,
@@ -46,22 +48,27 @@ global.app = {
   }
 };
 
+// boot up the application as pormise
 const boot = async (graphQlServerConfig = {}) => {
-  process.title = "GraphQL Waterline Server";
-  // console.log(app);
+  // set the process name
+  process.title = app.processTitle;
 
+  // check the file Structure
+  await ensureFilestructure(app.root);
+
+  // read in the config files
   const config = await configReader(app);
+  app.config = _.defaultsDeep(config, app.config);
 
-  app.config = _.defaultsDeep(app.config, config);
+  // parse Environment and cli params
   parseArgs(app);
+
   // console.log(app);
   let dbConfig = {
     adapters: app.config.adapters,
     datastores: app.config.datastores,
     defaultModelSettings: app.config.models
   };
-
-  await ensureFilestructure(app.root);
 
   // console.log(dbConfig);
   const db = await getDatabase(dbConfig);
@@ -141,20 +148,6 @@ const boot = async (graphQlServerConfig = {}) => {
   };
 
   const server = new GraphQLServer(qlConfig);
-  let defBootOpts = _.defaultsDeep(
-    {
-      port: 4000,
-      endpoint: "/",
-      subscriptions: false,
-      playground: "/",
-      defaultPlaygroundQuery: undefined,
-      uploads: undefined,
-      https: undefined,
-      getEndpoint: false,
-      deduplicator: true
-    },
-    app.config.settings
-  );
 
   server["db"] = db;
   server["waterline"] = db;
@@ -162,10 +155,20 @@ const boot = async (graphQlServerConfig = {}) => {
   server["boot"] = bootParams =>
     new Promise((resolve, reject) => {
       if (bootParams) {
-        defBootOpts = { ...defBootOpts, ...bootParams };
+        app.config.settings = _.defaultsDeep(bootParams, app.config.settings);
+
+        // we recheck params, not to be overwritten...
+        parseArgs(app);
       }
-      server.start(defBootOpts, () => {
-        resolve(defBootOpts);
+      server.start(app.config.settings, () => {
+        resolve({
+          port: (() => app.config.settings.port)(),
+          server: server,
+          express: server.express,
+          graphQlConfig: qlConfig,
+          bootConfig: app.config.settigs,
+          app: app
+        });
       });
     });
   return server;

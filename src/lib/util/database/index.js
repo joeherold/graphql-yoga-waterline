@@ -18,24 +18,30 @@ export const getDatabase = async (opts = {}) => {
   }
 
   // if (opts["datastores"]) {
-  datastores = _.defaultsDeep(datastores, opts["datastores"] || {}, {
-    default: { adapter: "sails-disk" }
-  });
+  datastores = _.defaultsDeep(
+    {
+      default: { adapter: "sails-disk" }
+    },
+    opts["datastores"] || {}
+  );
   // }
 
   // if (opts["adapters"]) {
-  adapters = _.defaultsDeep(adapters, opts["adapters"] || {}, {
-    "sails-disk": sailsDiskAdapter
-  });
+  adapters = _.defaultsDeep(
+    {
+      "sails-disk": sailsDiskAdapter
+    },
+    opts["adapters"] || {}
+  );
   // }
 
   if (opts["defaultModelSettings"]) {
     defaultModelSettings = _.defaultsDeep(
-      defaultModelSettings,
+      opts["defaultModelSettings"],
       {
         migrate: false
       },
-      opts["defaultModelSettings"]
+      defaultModelSettings
     );
   }
 

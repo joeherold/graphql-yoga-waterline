@@ -16,9 +16,10 @@ const read = async app => {
         for (let file of files) {
           const conf = require.resolve(file);
           let theConf = require(conf);
-          // console.log("theConf of file: ", file);
-          // console.log(theConf);
-          // console.log("\n");
+          if (app.config === true) {
+            console.log("\n\ntheConf of file: ", file);
+            console.log(theConf);
+          }
           if (!_.isEmpty(theConf)) {
             theConf = _.mapValues(theConf, val => {
               if (_.isEmpty(val)) return undefined;
@@ -26,8 +27,8 @@ const read = async app => {
             });
 
             global_configuration = _.defaultsDeep(
-              global_configuration,
-              theConf
+              theConf,
+              global_configuration
             );
           }
 
@@ -35,7 +36,7 @@ const read = async app => {
         }
       }
       // app.config = { ...global_configuration };
-      app.config = _.defaultsDeep(app.config, { ...global_configuration });
+      app.config = _.defaultsDeep({ ...global_configuration }, app.config);
       resolve(app.config);
     });
   });

@@ -1,63 +1,66 @@
-import mkdirp from "mkdirp";
 import fs from "fs";
 import path from "path";
 
-const generateFolderAtPath = async absPath => {
-  return new Promise(resolve => {
-    mkdirp(absPath, async (err, sucess) => {
-      if (err) {
-        // throw new Error(err);
-      }
-      const gitKeepMessage = `###########################
-### auto generated file ###\n###########################
-# This file was created, because the folder did not exist.
-# To ensure, the folder persits in your SVN, this .gitkeep file is created
-`;
-      await generateFileAtPathWithContent(
-        path.join(absPath, "/.gitkeep"),
-        gitKeepMessage
-      );
-      resolve(true);
-    });
-  });
-};
-
-const generateFileAtPathWithContent = async (absPathToFile, content) => {
-  return new Promise(resolve => {
-    fs.writeFile(absPathToFile, content, { flag: "wx" }, (err, success) => {
-      if (err) {
-        // throw new Error(err);
-      }
-      resolve(true);
-    });
-  });
-};
-
-const readFileAtPath = async absPathToFile => {
-  return new Promise(resolve => {
-    fs.readFile(absPathToFile, "utf8", (err, data) => {
-      resolve(data);
-    });
-  });
-};
+import {
+  renderTemplateFile,
+  generateFolderAtPath,
+  generateFileAtPathWithContent,
+  readFileAtPath
+} from "./helpers";
 
 export default async rootPath => {
+  await generateFolderAtPath(path.join(rootPath, "/api"));
   await generateFolderAtPath(path.join(rootPath, "/api/models"));
   await generateFolderAtPath(path.join(rootPath, "/api/schema"));
   await generateFolderAtPath(path.join(rootPath, "/api/policies"));
-
   await generateFolderAtPath(path.join(rootPath, "/api/resolvers"));
+  await generateFolderAtPath(path.join(rootPath, "/config"));
 
-  const resolversData = await readFileAtPath(
-    path.join(__dirname, "file_templates/resolvers_index.js")
+  const configFilesToCreate = [
+    {
+      fileName: "adapters.js",
+      template: "adapters.js.tpl"
+    },
+    {
+      fileName: "bootstrap.js",
+      template: "bootstrap.js.tpl"
+    },
+    {
+      fileName: "datastores.js",
+      template: "datastores.js.tpl"
+    },
+    {
+      fileName: "models.js",
+      template: "models.js.tpl"
+    },
+    {
+      fileName: "settings.js",
+      template: "settings.js.tpl"
+    }
+  ];
+
+  for (let item of configFilesToCreate) {
+    const data = await readFileAtPath(
+      path.join(__dirname, "../../../templates/", item.template)
+    );
+    const result = await generateFileAtPathWithContent(
+      path.join(rootPath, "/config/", item.fileName),
+      data
+    );
+  }
+
+  // generate an initial resolver "api/resolvers/index.js"
+  const resolversData = await renderTemplateFile(
+    path.join(__dirname, "../../../templates/resolvers_index.js.tpl")
   );
   await generateFileAtPathWithContent(
     path.join(rootPath, "/api/resolvers/index.js"),
     resolversData
   );
 
-  await generateFolderAtPath(path.join(rootPath, "/config"));
-
+  /**
+   * Generate a default api/schema/schema.graphql
+   */
   const schemaPath = path.join(rootPath, "api/schema/schema.graphql");
   if (!fs.existsSync(schemaPath)) {
     fs.writeFileSync(
@@ -67,6 +70,9 @@ export default async rootPath => {
     );
   }
 
+  /**
+   * Generate a default api/schema/models.graphql
+   */
   const modelSchemaPath = path.join(rootPath, "api/schema/models.graphql");
   if (!fs.existsSync(modelSchemaPath)) {
     fs.writeFileSync(
@@ -75,48 +81,4 @@ export default async rootPath => {
       { flag: "wx" }
     );
   }
-
-  //generate config files...
-  const adapterData = await readFileAtPath(
-    path.join(__dirname, "file_templates/adapters.js")
-  );
-  await generateFileAtPathWithContent(
-    path.join(rootPath, "/config/adapters.js"),
-    adapterData
-  );
-
-  //generate config files...
-
-  const bootstrapData = await readFileAtPath(
-    path.join(__dirname, "file_templates/bootstrap.js")
-  );
-  await generateFileAtPathWithContent(
-    path.join(rootPath, "/config/bootstrap.js"),
-    bootstrapData
-  );
-  //generate config files...
-
-  const datastoreData = await readFileAtPath(
-    path.join(__dirname, "file_templates/datastores.js")
-  );
-  await generateFileAtPathWithContent(
-    path.join(rootPath, "/config/datastores.js"),
-    datastoreData
-  );
-
-  const modelsData = await readFileAtPath(
-    path.join(__dirname, "file_templates/models.js")
-  );
-  await generateFileAtPathWithContent(
-    path.join(rootPath, "/config/models.js"),
-    modelsData
-  );
-
-  const settingsData = await readFileAtPath(
-    path.join(__dirname, "file_templates/settings.js")
-  );
-  await generateFileAtPathWithContent(
-    path.join(rootPath, "/config/settings.js"),
-    settingsData
-  );
 };
