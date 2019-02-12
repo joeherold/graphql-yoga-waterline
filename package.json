@@ -30,9 +30,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx rimraf dist && npx babel --out-dir lib src && npm run copy:templates",
-    "copy:templates": "cp -R ./src/templates ./lib/templates",
-    "build:minify": "npx rimraf dist && npx babel --out-dir lib src --no-comments --minify && npm run copy:templates",
+    "build": "npx rimraf dist && npx babel --out-dir lib src",
+    "build:minify": "npx rimraf dist && npx babel --out-dir lib src --no-comments --minify",
     "prepublish": "npm run build"
   },
   "repository": {

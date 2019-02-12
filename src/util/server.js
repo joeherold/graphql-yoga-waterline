@@ -9,11 +9,11 @@ import OKGGraphQLScalars, {
   OKGScalarDefinitions
 } from "@okgrow/graphql-scalars";
 
-import { getDatabase } from "./util/database";
-import { getSchemaFromModels } from "./util/graphql/schema-generator";
-import configReader from "./util/environment/config-reader";
-import parseArgs from "./util/environment/args";
-import ensureFilestructure from "./util/files/filestructure";
+import { getDatabase } from "./hooks/database";
+import { getSchemaFromModels } from "./hooks/graphql/schema-generator";
+import configReader from "./hooks/environment/config-reader";
+import parseArgs from "./hooks/environment/args";
+import ensureFilestructure from "./hooks/files/filestructure";
 
 const rootPath = path.resolve(process.cwd());
 // define the default global object
