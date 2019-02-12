@@ -20,10 +20,13 @@ export default app => {
 
   if (argv.prod) {
     nodEnv = "production";
+    process.env.NODE_ENV = "production";
   }
   if (argv.dev) {
     nodEnv = "dev";
+    process.env.NODE_ENV = "development";
   }
+  app.env = nodEnv;
 
   const normalizeBoolFromString = value => {
     switch (value) {

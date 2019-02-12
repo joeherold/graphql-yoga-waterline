@@ -65,17 +65,30 @@ export const getDatabase = async (opts = {}) => {
         // console.log("orm:", orm);
         // console.log("Waterline: ", Waterline);
 
-        WaterlineUtils.autoMigrations(app.config.models.migrate, orm, function(
-          err
-        ) {
-          if (err) {
-            // return done(err);
-            throw new Error(err);
+        if (app.env !== "production") {
+          WaterlineUtils.autoMigrations(
+            app.config.models.migrate,
+            orm,
+            function(err) {
+              if (err) {
+                // return done(err);
+                throw new Error(err);
+              }
+              resolve(orm);
+
+              // return done(undefined, orm);
+            }
+          );
+        } else {
+          if (app.config.models.migrate !== "safe") {
+            console.log(
+              'Your migragion config is set to "' +
+                app.config.models.migrate +
+                '". In production mode, the model migration is set to "safe".'
+            );
           }
           resolve(orm);
-
-          // return done(undefined, orm);
-        });
+        }
       }
     });
   });
