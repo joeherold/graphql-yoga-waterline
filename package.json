@@ -1,6 +1,6 @@
 {
   "name": "graphql-yoga-waterline",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "An easy to use implementation of the graphql-yoga server, but with Waterline ORM implemented, for easy setup of db or filestore driven APIs",
   "main": "lib/index.js",
   "dependencies": {

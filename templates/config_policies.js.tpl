@@ -7,16 +7,28 @@ const {
   or,
   not,
   allow,
-  deny,
-  rule,
-  shield
-} = require("graphql-yogq-waterline/lib/shield");
+  deny
+} = require("graphql-yoga-waterline/lib/util/shield");
+
 module.exports.policies = {
-  Query: {
-    hello: {
-      and: ["isAuthenticated"],
-      or: ["isAuthenticated"],
-      not: ["isAuthenticated"]
+  rules: {
+    // Set rules for Query types
+    Query: {
+      hello: and("isAuthenticated", "isAdmin")
     }
-  }
+  },
+
+  // https://github.com/maticzav/graphql-shield#options
+
+  // Toggle catching internal errors.
+  allowExternalErrors: false,
+
+  // Toggle debug mode.
+  debug: false,
+
+  // The default rule for every "rule-undefined" field.
+  fallbackRule: deny,
+
+  // Error Permission system fallbacks to.
+  fallbackError: new Error("This is my custom error Message")
 };

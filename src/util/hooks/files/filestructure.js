@@ -62,13 +62,22 @@ export default async rootPath => {
     resolversData
   );
 
-  // generate an initial resolver "api/resolvers/index.js"
+  // generate an initial resolver "api/policies/isAuthenticated.js"
   const api_isAuthenticated = await renderTemplateFile(
     path.join(__dirname, "../../../../templates/api_isAuthenticated.js.tpl")
   );
   await generateFileAtPathWithContent(
     path.join(rootPath, "/api/policies/isAuthenticated.js"),
     api_isAuthenticated
+  );
+
+  // generate an initial resolver "api/policies/isAdmin.js"
+  const api_isAdmin = await renderTemplateFile(
+    path.join(__dirname, "../../../../templates/api_isAdmin.js.tpl")
+  );
+  await generateFileAtPathWithContent(
+    path.join(rootPath, "/api/policies/isAdmin.js"),
+    api_isAdmin
   );
 
   /**

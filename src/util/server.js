@@ -14,6 +14,8 @@ import { getSchemaFromModels } from "./hooks/graphql/schema-generator";
 import configReader from "./hooks/environment/config-reader";
 import parseArgs from "./hooks/environment/args";
 import ensureFilestructure from "./hooks/files/filestructure";
+import { getPolicies } from "./hooks/shields";
+import { shield } from "../util/shield";
 
 const rootPath = path.resolve(process.cwd());
 // define the default global object
@@ -56,9 +58,24 @@ const boot = async (graphQlServerConfig = {}) => {
   // check the file Structure
   await ensureFilestructure(app.root);
 
+  let policiesForMiddleware = await getPolicies(app);
+  app["hooks"] = {};
+  app.hooks["policies"] = policiesForMiddleware;
+  // console.log(policiesForMiddleware);
+
   // read in the config files
   const config = await configReader(app);
   app.config = _.defaultsDeep(config, app.config);
+
+  // console.log(app.config.policies.rules);
+  let shieldMiddleware = shield(app.config.policies.rules, {
+    allowExternalErrors: app.config.policies.allowExternalErrors,
+    debug: app.config.policies.debug,
+    fallbackRule: app.config.policies.fallbackRule,
+    fallbackError: app.config.policies.fallbackError
+  });
+
+  // console.log(shieldMiddleware);
 
   // parse Environment and cli params
   parseArgs(app);
@@ -92,6 +109,8 @@ const boot = async (graphQlServerConfig = {}) => {
   // init the application
   let resolvers = require(path.join(app.root, "api/resolvers"));
 
+  // load policies
+
   let default_graphQlServerConfig = {
     typeDefs: [...OKGScalarDefinitions, genTypeDefs + "\n" + typeDefs],
     resolvers: {
@@ -109,7 +128,7 @@ const boot = async (graphQlServerConfig = {}) => {
       };
     },
     schemaDirectives: undefined,
-    middlewares: []
+    middlewares: [shieldMiddleware]
   };
 
   let qlConfig = {

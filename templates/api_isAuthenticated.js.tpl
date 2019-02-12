@@ -1,14 +1,31 @@
-const {
-  and,
-  or,
-  not,
-  allow,
-  deny,
-  rule,
-  shield
-} = require("graphql-yogq-waterline/lib/shield");
+/**
+ * isAuthenticated SAMPLE FILE
+ */
 
-module.exports = async (_, args, ctx, info) => {
-  // fake unauthenticated
-  return false;
+/**
+ *
+ * a policy is made with a rule function, that looks
+ * like a resolver function, according to its parameters
+ *
+ * additionally, we have a cache parameter to be set
+ *
+ * "no_cache" | false - prevents rules from being cached.
+ * "contextual" - use when rule only relies on ctx parameter.
+ * "strict" - use when rule relies on parent or args parameter as well.
+ *
+ * INFO: the policy ist accessiable in the policies config by its filename
+ * e.g. isAuthenticated.js => will be accessible as "isAuthenticated"
+ *
+ */
+module.exports = {
+  // the rule function
+  rule: async (_, args, ctx, info) => {
+    /**
+     * here we do a little fake function
+     */
+    return false;
+  },
+
+  // the rule cache configuration
+  cache: false
 };

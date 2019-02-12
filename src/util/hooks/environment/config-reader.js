@@ -16,7 +16,7 @@ const read = async app => {
         for (let file of files) {
           const conf = require.resolve(file);
           let theConf = require(conf);
-          if (app.config === true) {
+          if (app.debug === true) {
             console.log("\n\ntheConf of file: ", file);
             console.log(theConf);
           }
