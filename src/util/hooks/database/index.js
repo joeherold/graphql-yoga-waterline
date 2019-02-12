@@ -59,13 +59,13 @@ export const getDatabase = async (opts = {}) => {
     Waterline.start(config, (err, orm) => {
       if (err) {
         //   console.error(err);
-        reject(err);
-        return;
+        console.error(err);
+        return reject(err);
       } else {
         // console.log("orm:", orm);
         // console.log("Waterline: ", Waterline);
 
-        if (app.env !== "production") {
+        if (app.env !== "production" && process.env.NODE_ENV !== "production") {
           WaterlineUtils.autoMigrations(
             app.config.models.migrate,
             orm,
