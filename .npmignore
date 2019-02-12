@@ -1,9 +1,11 @@
+docs
 src
 .node_modules
 
 # app folders.
 .tmp
 config/local.js
+
 
 
 # Logs
