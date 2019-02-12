@@ -16,6 +16,7 @@ import parseArgs from "./hooks/environment/args";
 import ensureFilestructure from "./hooks/files/filestructure";
 import { getPolicies } from "./hooks/shields";
 import { shield } from "../util/shield";
+import args from "./hooks/environment/args";
 
 const rootPath = path.resolve(process.cwd());
 // define the default global object
@@ -55,16 +56,36 @@ const boot = async (graphQlServerConfig = {}) => {
   // set the process name
   process.title = app.processTitle;
 
+  const { bootstrap } = require(path.join(app.root, "/config/bootstrap.js"));
+  // execute bootstrap function
+  app.config.bootstrap = bootstrap;
+  // console.log(app.config.bootstrap);
+  if (typeof app.config.bootstrap === "function") {
+    const fnResolver = (...rest) => {
+      // console.log("args: ", rest);
+      if (rest.length === 0) return true;
+      return rest[0];
+    };
+    const result = await app.config.bootstrap(fnResolver);
+    if (result !== true) {
+      // console.log("result of bootstrap: ", result);
+      throw new Error(
+        "Bootstrap function faild with error message: " +
+          new Error(result).message
+      );
+    }
+  }
+
   // check the file Structure
   await ensureFilestructure(app.root);
 
   let policiesForMiddleware = await getPolicies(app);
   app["hooks"] = {};
   app.hooks["policies"] = policiesForMiddleware;
-  // console.log(policiesForMiddleware);
 
   // read in the config files
   const config = await configReader(app);
+
   app.config = _.defaultsDeep(config, app.config);
 
   // console.log(app.config.policies.rules);
