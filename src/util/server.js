@@ -56,6 +56,9 @@ const boot = async (graphQlServerConfig = {}) => {
   // set the process name
   process.title = app.processTitle;
 
+  // check the file Structure
+  await ensureFilestructure(app.root);
+
   const { bootstrap } = require(path.join(app.root, "/config/bootstrap.js"));
   // execute bootstrap function
   app.config.bootstrap = bootstrap;
@@ -75,9 +78,6 @@ const boot = async (graphQlServerConfig = {}) => {
       );
     }
   }
-
-  // check the file Structure
-  await ensureFilestructure(app.root);
 
   let policiesForMiddleware = await getPolicies(app);
   app["hooks"] = {};
