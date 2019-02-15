@@ -202,8 +202,8 @@ const boot = async (graphQlServerConfig = {}) => {
   server["boot"] = bootParams =>
     new Promise((resolve, reject) => {
       // we check for cors settings
-      if (app.config.scerurity["cors"]) {
-        app.config.settings = applyCors(app, app.config.scerurity.cors);
+      if (app.config.security && app.config.security["cors"]) {
+        app.config.settings = applyCors(app, app.config.security.cors);
       }
 
       if (bootParams) {
