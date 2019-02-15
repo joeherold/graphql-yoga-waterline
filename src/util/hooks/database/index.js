@@ -48,7 +48,7 @@ export const getDatabase = async (opts = {}) => {
   let config = {
     adapters,
     datastores,
-    models: await generateModelsFromFiles(app),
+    models: await generateModelsFromFiles(dawnship),
     defaultModelSettings
   };
 
@@ -65,9 +65,12 @@ export const getDatabase = async (opts = {}) => {
         // console.log("orm:", orm);
         // console.log("Waterline: ", Waterline);
 
-        if (app.env !== "production" && process.env.NODE_ENV !== "production") {
+        if (
+          dawnship.env !== "production" &&
+          process.env.NODE_ENV !== "production"
+        ) {
           WaterlineUtils.autoMigrations(
-            app.config.models.migrate,
+            dawnship.config.models.migrate,
             orm,
             function(err) {
               if (err) {
@@ -80,10 +83,10 @@ export const getDatabase = async (opts = {}) => {
             }
           );
         } else {
-          if (app.config.models.migrate !== "safe") {
-            console.log(
+          if (dawnship.config.models.migrate !== "safe") {
+            dawnship.log(
               'Your migragion config is set to "' +
-                app.config.models.migrate +
+                dawnship.config.models.migrate +
                 '". In production mode, the model migration is set to "safe".'
             );
           }
@@ -93,13 +96,13 @@ export const getDatabase = async (opts = {}) => {
     });
   });
 
-  app.models = orm.collections;
-  app.model = identity => {
+  dawnship.models = orm.collections;
+  dawnship.model = identity => {
     identity = identity.replace("", "").toLowerCase();
     return orm.collections[identity];
   };
-  app.datastores = orm.datastores;
-  app.waterline = orm;
+  dawnship.datastores = orm.datastores;
+  dawnship.waterline = orm;
   return {
     orm: orm,
     models: orm.collections,

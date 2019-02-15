@@ -8,7 +8,13 @@ import {
   readFileAtPath
 } from "./helpers";
 
-export default async rootPath => {
+export const ensureFilestructure = async dawnship => {
+  // dawnship.log("dawnship: ", dawnship);
+  if (dawnship.env === "production") {
+    dawnship.warn("Skipped checking filesystem, running in production");
+    return;
+  }
+  const rootPath = dawnship.root;
   await generateFolderAtPath(path.join(rootPath, "/api"));
   await generateFolderAtPath(path.join(rootPath, "/api/models"));
   await generateFolderAtPath(path.join(rootPath, "/api/schema"));

@@ -10,127 +10,136 @@ import OKGGraphQLScalars, {
   OKGScalarDefinitions
 } from "@okgrow/graphql-scalars";
 
+/**
+ * IMPORT ALL HOOKS
+ */
 import { getDatabase } from "./hooks/database";
+import { runHookBootstrap } from "./hooks/bootstrap";
 import { getSchemaFromModels } from "./hooks/graphql/schema-generator";
-import configReader from "./hooks/environment/config-reader";
-import parseArgs from "./hooks/environment/args";
-import ensureFilestructure from "./hooks/files/filestructure";
+import { configReader } from "./hooks/environment/config-reader";
+import { parseArgs, parseEnvArgs } from "./hooks/environment/args";
+import { ensureFilestructure } from "./hooks/files/filestructure";
 import { getPolicies } from "./hooks/shields";
+import { applyCors } from "./hooks/cors";
+import { createGlobals } from "./hooks/globals";
+import { initLogger } from "./hooks/logger";
+const bootMessage = [
+  "      _                          _     _       ",
+  "     | |                        | |   (_)      ",
+  "   __| | __ ___      ___ __  ___| |__  _ _ __ ",
+  "  / _` |/ _`   / / / '_ / __| '_ | | '_  ",
+  " | (_| | (_| | V  V /| | | __  | | | | |_) |",
+  "  \\__,_|__,_| _/_/ |_| |_|___/_| |_|_| .__/ ",
+  "                                      | |    ",
+  "                                      |_|    "
+];
+/**
+ * IMPORT SHIELD
+ */
 import { shield } from "../util/shield";
-import applyCors from "./hooks/cors";
-import args from "./hooks/environment/args";
-
-const rootPath = path.resolve(process.cwd());
-// define the default global object
-global.app = {
-  debug: false,
-  root: rootPath,
-  processTitle: "GraphQL Waterline Server",
-  env: "dev",
-  config: {
-    adapters: undefined,
-    datastores: undefined,
-    models: {
-      attributes: undefined,
-      migrate: "alter",
-      schema: false,
-      datastore: "default",
-      primaryKey: "id",
-      archiveModelIdentity: "archive"
-    },
-    bootstrap: undefined,
-    settings: {
-      port: 4000,
-      endpoint: "/",
-      subscriptions: false,
-      playground: "/",
-      defaultPlaygroundQuery: undefined,
-      uploads: undefined,
-      https: undefined,
-      getEndpoint: false,
-      deduplicator: true
-    }
-  }
-};
 
 // boot up the application as pormise
-const boot = async (graphQlServerConfig = {}) => {
-  // set the process name
-  process.title = app.processTitle;
+const boot = async (graphQlServerConfig = {}, customRootPath = undefined) => {
+  /**
+   * determine the root path of the application
+   */
+  const rootPath = customRootPath || path.resolve(process.cwd());
 
-  // check the file Structure
-  await ensureFilestructure(app.root);
+  /**
+   * first generate the globals variable;
+   */
+  let dawnship = createGlobals(rootPath, "@dawnship/server");
 
-  const { bootstrap } = require(path.join(app.root, "/config/bootstrap.js"));
-  // execute bootstrap function
-  app.config.bootstrap = bootstrap;
-  // console.log(app.config.bootstrap);
-  if (typeof app.config.bootstrap === "function") {
-    const fnResolver = (...rest) => {
-      // console.log("args: ", rest);
-      if (rest.length === 0) return true;
-      return rest[0];
-    };
-    const result = await app.config.bootstrap(fnResolver);
-    if (result !== true) {
-      // console.log("result of bootstrap: ", result);
-      throw new Error(
-        "Bootstrap function faild with error message: " +
-          new Error(result).message
-      );
+  /**
+   * parse Environment and cli param
+   */
+  const env = parseEnvArgs(dawnship);
+  dawnship.env = env;
+
+  /**
+   * INIT LOGGER
+   */
+  initLogger();
+
+  /**
+   * print logo to cli
+   */
+  if (dawnship.env !== "production") {
+    for (let line of bootMessage) {
+      console.log(line);
     }
   }
 
-  let policiesForMiddleware = await getPolicies(app);
-  app["hooks"] = {};
-  app.hooks["policies"] = policiesForMiddleware;
+  /**
+   * set the process name
+   */
+  process.title = dawnship.processTitle;
+
+  /**
+   * check the file Structure
+   */
+
+  await ensureFilestructure(dawnship);
+
+  /**
+   * apply bootstrap
+   */
+  await runHookBootstrap(dawnship);
+
+  let policiesForMiddleware = await getPolicies(dawnship);
+
+  dawnship["hooks"] = {};
+  dawnship.hooks["policies"] = policiesForMiddleware;
 
   // read in the config files
-  const config = await configReader(app);
+  const config = await configReader(dawnship);
 
-  app.config = _.defaultsDeep(config, app.config);
+  dawnship.config = _.defaultsDeep(config, dawnship.config);
 
-  // console.log(app.config.policies.rules);
-  let shieldMiddleware = shield(app.config.policies.rules, {
-    allowExternalErrors: app.config.policies.allowExternalErrors,
-    debug: app.config.policies.debug,
-    fallbackRule: app.config.policies.fallbackRule,
-    fallbackError: app.config.policies.fallbackError
+  // console.log(dawnship.config.policies.rules);
+  let shieldMiddleware = shield(dawnship.config.policies.rules, {
+    allowExternalErrors: dawnship.config.policies.allowExternalErrors,
+    debug: dawnship.config.policies.debug,
+    fallbackRule: dawnship.config.policies.fallbackRule,
+    fallbackError: dawnship.config.policies.fallbackError
   });
 
   // console.log(shieldMiddleware);
 
   // parse Environment and cli params
-  parseArgs(app);
+  parseArgs(dawnship);
 
-  // console.log(app);
+  // console.log(dawnship);
   let dbConfig = {
-    adapters: app.config.adapters,
-    datastores: app.config.datastores,
-    defaultModelSettings: app.config.models
+    adapters: dawnship.config.adapters,
+    datastores: dawnship.config.datastores,
+    defaultModelSettings: dawnship.config.models
   };
 
   // console.log(dbConfig);
   const db = await getDatabase(dbConfig);
 
-  if (app.env == "dev") {
+  if (dawnship.env == "dev") {
     const schema = await getSchemaFromModels(db.models);
-    fs.writeFileSync(path.join(app.root, "api/schema/models.graphql"), schema);
+    fs.writeFileSync(
+      path.join(dawnship.root, "api/schema/models.graphql"),
+      schema
+    );
   }
 
-  // const genTypeDefs = path.join(app.root, "api/schema.generated.graphql");
+  // const genTypeDefs = path.join(dawnship.root, "api/schema.generated.graphql");
   const genTypeDefs = fs.readFileSync(
-    path.join(app.root, "api/schema/models.graphql"),
+    path.join(dawnship.root, "api/schema/models.graphql"),
     "utf8"
   );
 
   const typeDefs = fs.readFileSync(
-    path.join(app.root, "api/schema/schema.graphql"),
+    path.join(dawnship.root, "api/schema/schema.graphql"),
     "utf8"
   );
 
   // init the application
-  let resolvers = require(path.join(app.root, "api/resolvers"));
+  let resolvers = require(path.join(dawnship.root, "api/resolvers"));
 
   // add cors middleware
 
@@ -194,7 +203,7 @@ const boot = async (graphQlServerConfig = {}) => {
   const server = new GraphQLServer(qlConfig);
 
   // add cookie parser
-  prepareExpress(server.express, app);
+  prepareExpress(server.express, dawnship);
 
   server["db"] = db;
   server["waterline"] = db;
@@ -202,27 +211,33 @@ const boot = async (graphQlServerConfig = {}) => {
   server["boot"] = bootParams =>
     new Promise((resolve, reject) => {
       // we check for cors settings
-      if (app.config.security && app.config.security["cors"]) {
-        app.config.settings["cors"] = applyCors(app, app.config.security.cors);
+      if (dawnship.config.security && dawnship.config.security["cors"]) {
+        dawnship.config.settings["cors"] = applyCors(
+          dawnship,
+          dawnship.config.security.cors
+        );
       }
 
       if (bootParams) {
-        app.config.settings = _.defaultsDeep(bootParams, app.config.settings);
+        dawnship.config.settings = _.defaultsDeep(
+          bootParams,
+          dawnship.config.settings
+        );
 
         // we recheck params, not to be overwritten...
       }
-      parseArgs(app);
+      parseArgs(dawnship);
 
       // parse cors options
 
-      server.start(app.config.settings, () => {
+      server.start(dawnship.config.settings, () => {
         resolve({
-          port: (() => app.config.settings.port)(),
+          port: (() => dawnship.config.settings.port)(),
           server: server,
           express: server.express,
           graphQlConfig: qlConfig,
-          bootConfig: app.config.settigs,
-          app: app
+          bootConfig: dawnship.config.settigs,
+          app: dawnship
         });
       });
     });

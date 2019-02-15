@@ -3,7 +3,7 @@ import { getNamedType } from "graphql";
 import _ from "lodash";
 
 const mapStringToFunctions = (args, fnType) => {
-  const policies = app.hooks.policies;
+  const policies = dawnship.hooks.policies;
   // console.log("policies: \n", policies);
 
   if (!_.isObject(policies)) {

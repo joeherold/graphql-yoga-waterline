@@ -6,9 +6,9 @@ import { rule } from "../../shield";
 const getShieldPoliciesConfig = async () => {};
 const getShieldPolicies = async () => {};
 
-export const getPolicies = async app => {
+export const getPolicies = async dawnship => {
   let policies = await new Promise(async (resolve, reject) => {
-    glob(path.join(app.root, "/api/policies/*.js"), (err, files) => {
+    glob(path.join(dawnship.root, "/api/policies/*.js"), (err, files) => {
       let rules = {};
       if (err) {
         reject(err);

@@ -1,7 +1,7 @@
 import normalizeModelDefs from "./normalizer";
 import glob from "glob";
 import path from "path";
-export const generateModelsFromFiles = async () => {
+export const generateModelsFromFiles = async dawnship => {
   // placeholder for model instantiation values
 
   let validatedModels = {};
@@ -9,7 +9,7 @@ export const generateModelsFromFiles = async () => {
   // therefore we glob over the file and store the paths in an
   // files array
   const files = await new Promise((resolve, reject) => {
-    glob(path.join(app.root, "/api/models/*.js"), (err, files) => {
+    glob(path.join(dawnship.root, "/api/models/*.js"), (err, files) => {
       if (err) {
         reject(err);
       }

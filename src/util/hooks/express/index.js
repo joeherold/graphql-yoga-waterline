@@ -2,13 +2,13 @@ import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import csrf from "csurf";
 
-const prepareExpress = (expressApp, app) => {
+const prepareExpress = (expressApp, dawnship) => {
   // code here
 
   // add cookie parser
   expressApp.use(cookieParser());
 
-  if (app.config.security.csrf === true) {
+  if (dawnship.config.security.csrf === true) {
     // add csrf
     let csrfProtection = csrf({ cookie: true });
     expressApp.use(csrfProtection, (req, res, next) => {

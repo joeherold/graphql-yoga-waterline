@@ -2,13 +2,13 @@ import glob from "glob";
 import path from "path";
 import _ from "lodash";
 
-const read = async app => {
+export const configReader = async dawnship => {
   // console.info("\nreading config from files:\n");
 
   let newConfig = await new Promise(async (resolve, reject) => {
     let global_configuration = {};
 
-    glob(path.join(app.root, "/config/**/*.js"), (err, files) => {
+    glob(path.join(dawnship.root, "/config/**/*.js"), (err, files) => {
       if (err) {
         reject(err);
       }
@@ -16,7 +16,7 @@ const read = async app => {
         for (let file of files) {
           const conf = require.resolve(file);
           let theConf = require(conf);
-          if (app.debug === true) {
+          if (dawnship.debug === true) {
             console.log("\n\ntheConf of file: ", file);
             console.log(theConf);
           }
@@ -35,13 +35,16 @@ const read = async app => {
           // global_configuration = _.defaults(global_configuration, theConf); //{ ...global_configuration, ...theConf };
         }
       }
-      // app.config = { ...global_configuration };
-      app.config = _.defaultsDeep({ ...global_configuration }, app.config);
-      resolve(app.config);
+      // dawnship.config = { ...global_configuration };
+      dawnship.config = _.defaultsDeep(
+        { ...global_configuration },
+        dawnship.config
+      );
+      resolve(dawnship.config);
     });
   });
   // console.log(newConfig);
   return newConfig;
 };
 
-export default read;
+export default configReader;

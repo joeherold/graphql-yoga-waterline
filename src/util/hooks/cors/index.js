@@ -1,9 +1,9 @@
 import _ from "lodash";
 
-const applyCors = (app, corsOptions) => {
-  if (app.config.security.cors) {
-    corsOptions = _.defaultsDeep(app.config.security.cors, corsOptions);
-    app.config.settings.cors = { ...corsOptions };
+export const applyCors = (dawnship, corsOptions) => {
+  if (dawnship.config.security.cors) {
+    corsOptions = _.defaultsDeep(dawnship.config.security.cors, corsOptions);
+    dawnship.config.settings.cors = { ...corsOptions };
   }
   return corsOptions;
 };
