@@ -40,6 +40,10 @@ export default async rootPath => {
     {
       fileName: "policies.js",
       template: "config_policies.js.tpl"
+    },
+    {
+      fileName: "security.js",
+      template: "config_security.js.tpl"
     }
   ];
 

@@ -1,6 +1,7 @@
 // entry file
 import { GraphQLServer } from "graphql-yoga";
 
+import prepareExpress from "./hooks/express";
 import path from "path";
 import fs from "fs";
 import _ from "lodash";
@@ -16,6 +17,7 @@ import parseArgs from "./hooks/environment/args";
 import ensureFilestructure from "./hooks/files/filestructure";
 import { getPolicies } from "./hooks/shields";
 import { shield } from "../util/shield";
+import applyCors from "./hooks/cors";
 import args from "./hooks/environment/args";
 
 const rootPath = path.resolve(process.cwd());
@@ -130,7 +132,7 @@ const boot = async (graphQlServerConfig = {}) => {
   // init the application
   let resolvers = require(path.join(app.root, "api/resolvers"));
 
-  // load policies
+  // add cors middleware
 
   let default_graphQlServerConfig = {
     typeDefs: [...OKGScalarDefinitions, genTypeDefs + "\n" + typeDefs],
@@ -144,6 +146,8 @@ const boot = async (graphQlServerConfig = {}) => {
     context: req => {
       return {
         ...req,
+        req: req.request,
+        res: req.response,
         db,
         getModel: db.model
       };
@@ -189,17 +193,31 @@ const boot = async (graphQlServerConfig = {}) => {
 
   const server = new GraphQLServer(qlConfig);
 
+  // add cookie parser
+  prepareExpress(server.express, app);
+
   server["db"] = db;
   server["waterline"] = db;
   server["orm"] = db;
   server["boot"] = bootParams =>
     new Promise((resolve, reject) => {
+      // we check for cors settings
+      if (app.config.scerurity["cors"]) {
+        app.config.settings = applyCors(app, app.config.scerurity.cors);
+      }
+
       if (bootParams) {
-        app.config.settings = _.defaultsDeep(bootParams, app.config.settings);
+        expresServerBootSettings = _.defaultsDeep(
+          bootParams,
+          app.config.settings
+        );
 
         // we recheck params, not to be overwritten...
-        parseArgs(app);
       }
+      parseArgs(app);
+
+      // parse cors options
+
       server.start(app.config.settings, () => {
         resolve({
           port: (() => app.config.settings.port)(),
