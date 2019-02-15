@@ -203,14 +203,11 @@ const boot = async (graphQlServerConfig = {}) => {
     new Promise((resolve, reject) => {
       // we check for cors settings
       if (app.config.security && app.config.security["cors"]) {
-        app.config.settings = applyCors(app, app.config.security.cors);
+        app.config.settings["cors"] = applyCors(app, app.config.security.cors);
       }
 
       if (bootParams) {
-        expresServerBootSettings = _.defaultsDeep(
-          bootParams,
-          app.config.settings
-        );
+        app.config.settings = _.defaultsDeep(bootParams, app.config.settings);
 
         // we recheck params, not to be overwritten...
       }
