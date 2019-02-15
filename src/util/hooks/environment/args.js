@@ -1,32 +1,38 @@
 const argv = require("yargs").argv;
-export default app => {
-  // console.info("prsing args provided via ENV");
-  let nodEnv = "dev";
+
+export const parseEnvArgs = dawnship => {
+  let applicationEnvironment = "development";
   if (process.env.NODE_ENV) {
     switch (process.env.NODE_ENV) {
       case "dev":
       case "development":
       case "d":
-        nodEnv = "development";
+        applicationEnvironment = "development";
         break;
       case "prod":
       case "production":
       case "p":
-        nodEnv = "production";
+        applicationEnvironment = "production";
+        break;
       default:
-        nodEnv = "development";
+        applicationEnvironment = "development";
     }
   }
 
   if (argv.prod) {
-    nodEnv = "production";
+    applicationEnvironment = "production";
     process.env.NODE_ENV = "production";
   }
   if (argv.dev) {
-    nodEnv = "dev";
+    applicationEnvironment = "development";
     process.env.NODE_ENV = "development";
   }
-  app.env = nodEnv;
+  dawnship.env = applicationEnvironment;
+  return applicationEnvironment;
+};
+
+export const parseArgs = dawnship => {
+  // console.info("prsing args provided via ENV");
 
   const normalizeBoolFromString = value => {
     switch (value) {
@@ -47,7 +53,7 @@ export default app => {
     return value;
   };
 
-  // console.log(app.config.settings);
+  // console.log(dawnship.config.settings);
   const possibleOverwrite = [
     "tracing",
 
@@ -81,10 +87,10 @@ export default app => {
         settingsKey = "playground";
       }
       let value = normalizeBoolFromString(argv[opt]);
-      app.config.settings[settingsKey] = value;
+      dawnship.config.settings[settingsKey] = value;
     } else if (process.env[opt.toUpperCase()]) {
       let value = normalizeBoolFromString(process.env[opt.toUpperCase()]);
-      app.config.settings[settingsKey] = value;
+      dawnship.config.settings[settingsKey] = value;
     }
   }
 };
