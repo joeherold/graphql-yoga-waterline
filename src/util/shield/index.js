@@ -1,5 +1,5 @@
 import * as gShield from "graphql-shield";
-import { getNamedType } from "graphql";
+// import { getNamedType } from "graphql";
 import _ from "lodash";
 
 const mapStringToFunctions = (args, fnType) => {

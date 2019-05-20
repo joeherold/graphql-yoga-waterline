@@ -1,10 +1,13 @@
 // entry file
-import { GraphQLServer } from "graphql-yoga";
 
+import { GraphQLServer } from "graphql-yoga";
+import { weaveSchemas } from "graphql-weaver";
 import prepareExpress from "./hooks/express";
 import path from "path";
-import fs from "fs";
+import fs, { exists } from "fs";
 import _ from "lodash";
+
+// import { makeExecutableSchema, mergeSchemas } from "graphql-tools";
 
 import OKGGraphQLScalars, {
   OKGScalarDefinitions
@@ -38,8 +41,22 @@ const bootMessage = [
  */
 import { shield } from "../util/shield";
 
+import {
+  makeExecutableSchema,
+  mergeSchemas,
+  makeRemoteExecutableSchema,
+  transformSchema,
+  RenameTypes
+} from "graphql-tools";
+
+// export const YogaGraphQLServer = GraphQLServer;
+
 // boot up the application as pormise
-const boot = async (graphQlServerConfig = {}, customRootPath = undefined) => {
+const boot = async (
+  graphQlServerConfig = {},
+  customRootPath = undefined,
+  CustomYogaImport
+) => {
   /**
    * determine the root path of the application
    */
@@ -97,13 +114,18 @@ const boot = async (graphQlServerConfig = {}, customRootPath = undefined) => {
   dawnship.config = _.defaultsDeep(config, dawnship.config);
 
   // console.log(dawnship.config.policies.rules);
-  let shieldMiddleware = shield(dawnship.config.policies.rules, {
-    allowExternalErrors: dawnship.config.policies.allowExternalErrors,
-    debug: dawnship.config.policies.debug,
-    fallbackRule: dawnship.config.policies.fallbackRule,
-    fallbackError: dawnship.config.policies.fallbackError
-  });
-
+  let shieldMiddleware = undefined;
+  if (
+    dawnship.config.policies.rules &&
+    dawnship.config.policies.rules.length > 0
+  ) {
+    shieldMiddleware = shield(dawnship.config.policies.rules, {
+      allowExternalErrors: dawnship.config.policies.allowExternalErrors,
+      debug: dawnship.config.policies.debug,
+      fallbackRule: dawnship.config.policies.fallbackRule,
+      fallbackError: dawnship.config.policies.fallbackError
+    });
+  }
   // console.log(shieldMiddleware);
 
   // parse Environment and cli params
@@ -162,7 +184,7 @@ const boot = async (graphQlServerConfig = {}, customRootPath = undefined) => {
       };
     },
     schemaDirectives: undefined,
-    middlewares: [shieldMiddleware]
+    middlewares: shieldMiddleware ? [shieldMiddleware] : []
   };
 
   let qlConfig = {
@@ -176,7 +198,7 @@ const boot = async (graphQlServerConfig = {}, customRootPath = undefined) => {
     },
     resolverValidationOptions:
       graphQlServerConfig.resolverValidationOptions || undefined,
-    // schema not supported yet
+
     mocks: graphQlServerConfig.mocks || undefined,
     context: attr => {
       if (typeof graphQlServerConfig.context === "function") {
@@ -200,7 +222,68 @@ const boot = async (graphQlServerConfig = {}, customRootPath = undefined) => {
     ]
   };
 
-  const server = new GraphQLServer(qlConfig);
+  const BuildHandlerClass =
+    CustomYogaImport && CustomYogaImport.GraphQLServer
+      ? CustomYogaImport.GraphQLServer
+      : GraphQLServer;
+
+  let server = new BuildHandlerClass(qlConfig);
+
+  // const mergeS = (qlConfig);
+  if (graphQlServerConfig.remoteSchemas) {
+    // qlConfig.typeDefs = undefined;
+    // qlConfig.resolvers = undefined;
+    // qlConfig.schemaDirectives = undefined;
+    // qlConfig.middlewares = undefined;
+    // const schema_1 = server.executableSchema;
+    // const schema_2 = graphQlServerConfig.remoteSchemas;
+    // console.log("SCHEMA 1", schema_1);
+    // console.log("SCHEMA 2", schema_2);
+    // try {
+    //   const onTypeConflict = (left, right, info) => {
+    //     if (info.left.schema.version >= info.right.schema.version) {
+    //       return left;
+    //     } else {
+    //       return right;
+    //     }
+    //   };
+    //   const newSchema = mergeSchemas({
+    //     schemas: [schema_2],
+    //     onTypeConflict: onTypeConflict
+    //     // resolvers: qlConfig.resolvers
+    //   });
+    // } catch (e) {
+    //   console.log("error:", e);
+    // }
+
+    // console.log(newSchema);
+    // console.log("schema_1", schema_1);
+    // // const schema_2 = graphQlServerConfig.schema;
+    // // console.log("schema_2", schema_2);
+    // // let arrSchemas = [schema_1, schema_2];
+    // const newSchema = await weaveSchemas({
+    //   endpoints: [
+    //     ...graphQlServerConfig.remoteSchemas.endpoints,
+    //     {
+    //       namespace: "local",
+    //       schema: schema_1
+    //     }
+    //   ]
+    // });
+    // // consolelog("newSchema", newSchema);
+    server = new BuildHandlerClass({
+      ...qlConfig,
+      schema: schema_1
+      // middlewares: null
+    });
+  }
+
+  // console.log(server.executableSchema);
+  // console.log(
+  //   mergeSchemas({
+  //     schemas: [server.executableSchema, graphQlServerConfig.schema]
+  //   })
+  // );
 
   // add cookie parser
   prepareExpress(server.express, dawnship);
