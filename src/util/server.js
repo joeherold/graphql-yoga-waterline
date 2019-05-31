@@ -141,7 +141,7 @@ const boot = async (
   // console.log(dbConfig);
   const db = await getDatabase(dbConfig);
 
-  if (dawnship.env == "dev") {
+  if (dawnship.env !== "production") {
     const schema = await getSchemaFromModels(db.models);
     fs.writeFileSync(
       path.join(dawnship.root, "api/schema/models.graphql"),
