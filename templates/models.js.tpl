@@ -7,7 +7,15 @@ module.exports.models = {
    * (Can be overridden on an attribute-by-attribute basis.)
    * @url https://sailsjs.com/documentation/concepts/models-and-orm/attributes
    * */
-  attributes: {},
+  attributes: {
+    id: {
+      type: "number",
+      required: true,
+      autoIncrement: true
+    },
+    createdAt: { type: "number", autoCreatedAt: true },
+    updatedAt: { type: "number", autoUpdatedAt: true }
+  },
 
   /**
    * The auto-migration strategy for your GraphQL app. How & whether GraphQL App will
