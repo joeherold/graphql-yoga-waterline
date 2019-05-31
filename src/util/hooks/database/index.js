@@ -3,6 +3,7 @@ import _ from "lodash";
 import WaterlineUtils from "waterline-utils";
 import sailsDiskAdapter from "sails-disk";
 import { generateModelsFromFiles } from "./helper/models/builder";
+import { normalizeModelDefs } from "./helper/models/normalizer";
 
 /**
  * getDatabase
@@ -49,7 +50,7 @@ export const getDatabase = async (opts = {}) => {
     adapters,
     datastores,
     models: await generateModelsFromFiles(dawnship),
-    defaultModelSettings
+    defaultModelSettings: normalizeModelDefs(defaultModelSettings)
   };
 
   // console.log("config: ", config);
