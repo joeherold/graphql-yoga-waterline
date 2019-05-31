@@ -64,7 +64,8 @@ export const normalizeModelDefs = inModel => {
     }
     // console.log("_attributes: ", _attributes);
 
-    // Move certain attribute properties into `validartions`.  These are not valid top-level
+    // Move certain attribute properties into `validations`.
+    // These are not valid top-level
     // properties as far as waterline-schema is concerned.
     _field.validations = _field.validations || {};
 
