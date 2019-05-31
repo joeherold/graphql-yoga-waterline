@@ -26,16 +26,10 @@ import { getPolicies } from "./hooks/shields";
 import { applyCors } from "./hooks/cors";
 import { createGlobals } from "./hooks/globals";
 import { initLogger } from "./hooks/logger";
-const bootMessage = [
-  "      _                          _     _       ",
-  "     | |                        | |   (_)      ",
-  "   __| | __ ___      ___ __  ___| |__  _ _ __ ",
-  "  / _` |/ _`   / / / '_ / __| '_ | | '_  ",
-  " | (_| | (_| | V  V /| | | __  | | | | |_) |",
-  "  \\__,_|__,_| _/_/ |_| |_|___/_| |_|_| .__/ ",
-  "                                      | |    ",
-  "                                      |_|    "
-];
+const bootMessage = fs.readFileSync(
+  path.join(__dirname, "../../templates/banner.txt.tpl"),
+  "utf8"
+);
 /**
  * IMPORT SHIELD
  */
@@ -82,9 +76,10 @@ const boot = async (
    * print logo to cli
    */
   if (dawnship.env !== "production") {
-    for (let line of bootMessage) {
-      console.log(line);
-    }
+    console.log(bootMessage);
+    // for (let line of bootMessage) {
+    //   console.log(line);
+    // }
   }
 
   /**
