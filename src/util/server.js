@@ -3,9 +3,12 @@
 import { GraphQLServer } from "graphql-yoga";
 import { weaveSchemas } from "graphql-weaver";
 import prepareExpress from "./hooks/express";
+import glob from "glob";
 import path from "path";
 import fs, { exists } from "fs";
 import _ from "lodash";
+import PrettyError from "pretty-error";
+const pe = new PrettyError();
 
 // import { makeExecutableSchema, mergeSchemas } from "graphql-tools";
 
@@ -51,274 +54,303 @@ const boot = async (
   customRootPath = undefined,
   CustomYogaImport
 ) => {
-  /**
-   * determine the root path of the application
-   */
-  const rootPath = customRootPath || path.resolve(process.cwd());
+  pe.start();
+  pe.skipNodeFiles();
+  // pe.skipPackage("graphql");
+  try {
+    /**
+     * determine the root path of the application
+     */
+    const rootPath = customRootPath || path.resolve(process.cwd());
 
-  /**
-   * first generate the globals variable;
-   */
-  let dawnship = createGlobals(rootPath, "@dawnship/server");
+    /**
+     * first generate the globals variable;
+     */
+    let dawnship = createGlobals(rootPath, "@dawnship/server");
 
-  /**
-   * parse Environment and cli param
-   */
-  const env = parseEnvArgs(dawnship);
-  dawnship.env = env;
+    /**
+     * parse Environment and cli param
+     */
+    const env = parseEnvArgs(dawnship);
+    dawnship.env = env;
 
-  /**
-   * INIT LOGGER
-   */
-  initLogger();
+    /**
+     * INIT LOGGER
+     */
+    initLogger();
 
-  /**
-   * print logo to cli
-   */
-  if (dawnship.env !== "production") {
-    console.log(bootMessage);
-    // for (let line of bootMessage) {
-    //   console.log(line);
-    // }
-  }
+    /**
+     * print logo to cli
+     */
+    if (dawnship.env !== "production") {
+      console.log(bootMessage);
+      // for (let line of bootMessage) {
+      //   console.log(line);
+      // }
+    }
 
-  /**
-   * set the process name
-   */
-  process.title = dawnship.processTitle;
+    /**
+     * set the process name
+     */
+    process.title = dawnship.processTitle;
 
-  /**
-   * check the file Structure
-   */
+    /**
+     * check the file Structure
+     */
 
-  await ensureFilestructure(dawnship);
+    await ensureFilestructure(dawnship);
 
-  /**
-   * apply bootstrap
-   */
-  await runHookBootstrap(dawnship);
+    /**
+     * apply bootstrap
+     */
+    await runHookBootstrap(dawnship);
 
-  let policiesForMiddleware = await getPolicies(dawnship);
+    let policiesForMiddleware = await getPolicies(dawnship);
 
-  dawnship["hooks"] = {};
-  dawnship.hooks["policies"] = policiesForMiddleware;
+    dawnship["hooks"] = {};
+    dawnship.hooks["policies"] = policiesForMiddleware;
 
-  // read in the config files
-  const config = await configReader(dawnship);
+    // read in the config files
+    const config = await configReader(dawnship);
 
-  dawnship.config = _.defaultsDeep(config, dawnship.config);
+    dawnship.config = _.defaultsDeep(config, dawnship.config);
 
-  // console.log(dawnship.config.policies.rules);
-  let shieldMiddleware = undefined;
-  if (
-    dawnship.config.policies.rules &&
-    dawnship.config.policies.rules.length > 0
-  ) {
-    shieldMiddleware = shield(dawnship.config.policies.rules, {
-      allowExternalErrors: dawnship.config.policies.allowExternalErrors,
-      debug: dawnship.config.policies.debug,
-      fallbackRule: dawnship.config.policies.fallbackRule,
-      fallbackError: dawnship.config.policies.fallbackError
+    // console.log(dawnship.config.policies.rules);
+    let shieldMiddleware = undefined;
+    if (
+      dawnship.config.policies.rules &&
+      dawnship.config.policies.rules.length > 0
+    ) {
+      shieldMiddleware = shield(dawnship.config.policies.rules, {
+        allowExternalErrors: dawnship.config.policies.allowExternalErrors,
+        debug: dawnship.config.policies.debug,
+        fallbackRule: dawnship.config.policies.fallbackRule,
+        fallbackError: dawnship.config.policies.fallbackError
+      });
+    }
+    // console.log(shieldMiddleware);
+
+    // parse Environment and cli params
+    parseArgs(dawnship);
+
+    // console.log(dawnship);
+    let dbConfig = {
+      adapters: dawnship.config.adapters,
+      datastores: dawnship.config.datastores,
+      defaultModelSettings: dawnship.config.models
+    };
+
+    // console.log(dbConfig);
+    const db = await getDatabase(dbConfig);
+
+    if (dawnship.env !== "production") {
+      const schema = await getSchemaFromModels(db.models);
+      fs.writeFileSync(
+        path.join(dawnship.root, "api/schema/models.graphql"),
+        schema
+      );
+    }
+
+    // read all graphql files
+    const files = await new Promise((resolve, reject) => {
+      glob(
+        path.join(dawnship.root, "api/schema/**/*.graphql"),
+        (err, files) => {
+          if (err) {
+            reject(err);
+          }
+          if (files) {
+            resolve(files);
+          }
+        }
+      );
     });
-  }
-  // console.log(shieldMiddleware);
 
-  // parse Environment and cli params
-  parseArgs(dawnship);
+    // next we have to iterate over the files
+    let typeDefs = [];
+    for (let file of files) {
+      typeDefs.push(fs.readFileSync(file, "utf8"));
+    }
 
-  // console.log(dawnship);
-  let dbConfig = {
-    adapters: dawnship.config.adapters,
-    datastores: dawnship.config.datastores,
-    defaultModelSettings: dawnship.config.models
-  };
+    // // const genTypeDefs = path.join(dawnship.root, "api/schema.generated.graphql");
+    // const genTypeDefs = fs.readFileSync(
+    //   path.join(dawnship.root, "api/schema/models.graphql"),
+    //   "utf8"
+    // );
 
-  // console.log(dbConfig);
-  const db = await getDatabase(dbConfig);
+    // const typeDefs = fs.readFileSync(
+    //   path.join(dawnship.root, "api/schema/schema.graphql"),
+    //   "utf8"
+    // );
 
-  if (dawnship.env !== "production") {
-    const schema = await getSchemaFromModels(db.models);
-    fs.writeFileSync(
-      path.join(dawnship.root, "api/schema/models.graphql"),
-      schema
-    );
-  }
+    // init the application
+    let resolvers = require(path.join(dawnship.root, "api/resolvers"));
 
-  // const genTypeDefs = path.join(dawnship.root, "api/schema.generated.graphql");
-  const genTypeDefs = fs.readFileSync(
-    path.join(dawnship.root, "api/schema/models.graphql"),
-    "utf8"
-  );
+    // add cors middleware
 
-  const typeDefs = fs.readFileSync(
-    path.join(dawnship.root, "api/schema/schema.graphql"),
-    "utf8"
-  );
+    let default_graphQlServerConfig = {
+      typeDefs: [...OKGScalarDefinitions, ...typeDefs],
+      resolvers: {
+        ...OKGGraphQLScalars,
+        ...resolvers
+      },
+      resolverValidationOptions: undefined,
+      // schema: null, // not supported yet...
+      mocks: undefined,
+      context: req => {
+        return {
+          ...req,
+          req: req.request,
+          res: req.response,
+          db,
+          getModel: db.model
+        };
+      },
+      schemaDirectives: undefined,
+      middlewares: shieldMiddleware ? [shieldMiddleware] : []
+    };
 
-  // init the application
-  let resolvers = require(path.join(dawnship.root, "api/resolvers"));
+    let qlConfig = {
+      typeDefs: [
+        ...default_graphQlServerConfig.typeDefs,
+        ...(graphQlServerConfig.typeDefs || [])
+      ],
+      resolvers: {
+        ...default_graphQlServerConfig.resolvers,
+        ...(graphQlServerConfig.resolvers || {})
+      },
+      resolverValidationOptions:
+        graphQlServerConfig.resolverValidationOptions || undefined,
 
-  // add cors middleware
+      mocks: graphQlServerConfig.mocks || undefined,
+      context: attr => {
+        if (typeof graphQlServerConfig.context === "function") {
+          return default_graphQlServerConfig.context(
+            graphQlServerConfig.context(attr)
+          );
+        } else if (typeof graphQlServerConfig.context === "object") {
+          return default_graphQlServerConfig.context({
+            ...attr,
+            ...graphQlServerConfig.context
+          });
+        } else {
+          return default_graphQlServerConfig.context(attr);
+        }
+      },
 
-  let default_graphQlServerConfig = {
-    typeDefs: [...OKGScalarDefinitions, genTypeDefs + "\n" + typeDefs],
-    resolvers: {
-      ...OKGGraphQLScalars,
-      ...resolvers
-    },
-    resolverValidationOptions: undefined,
-    // schema: null, // not supported yet...
-    mocks: undefined,
-    context: req => {
-      return {
-        ...req,
-        req: req.request,
-        res: req.response,
-        db,
-        getModel: db.model
-      };
-    },
-    schemaDirectives: undefined,
-    middlewares: shieldMiddleware ? [shieldMiddleware] : []
-  };
+      schemaDirectives: graphQlServerConfig.schemaDirectives || undefined,
+      middlewares: [
+        ...default_graphQlServerConfig.middlewares,
+        ...(graphQlServerConfig.middlewares || [])
+      ]
+    };
 
-  let qlConfig = {
-    typeDefs: [
-      ...default_graphQlServerConfig.typeDefs,
-      ...(graphQlServerConfig.typeDefs || [])
-    ],
-    resolvers: {
-      ...default_graphQlServerConfig.resolvers,
-      ...(graphQlServerConfig.resolvers || {})
-    },
-    resolverValidationOptions:
-      graphQlServerConfig.resolverValidationOptions || undefined,
+    const BuildHandlerClass =
+      CustomYogaImport && CustomYogaImport.GraphQLServer
+        ? CustomYogaImport.GraphQLServer
+        : GraphQLServer;
 
-    mocks: graphQlServerConfig.mocks || undefined,
-    context: attr => {
-      if (typeof graphQlServerConfig.context === "function") {
-        return default_graphQlServerConfig.context(
-          graphQlServerConfig.context(attr)
-        );
-      } else if (typeof graphQlServerConfig.context === "object") {
-        return default_graphQlServerConfig.context({
-          ...attr,
-          ...graphQlServerConfig.context
-        });
-      } else {
-        return default_graphQlServerConfig.context(attr);
-      }
-    },
+    let server = new BuildHandlerClass(qlConfig);
 
-    schemaDirectives: graphQlServerConfig.schemaDirectives || undefined,
-    middlewares: [
-      ...default_graphQlServerConfig.middlewares,
-      ...(graphQlServerConfig.middlewares || [])
-    ]
-  };
+    // const mergeS = (qlConfig);
+    if (graphQlServerConfig.remoteSchemas) {
+      // qlConfig.typeDefs = undefined;
+      // qlConfig.resolvers = undefined;
+      // qlConfig.schemaDirectives = undefined;
+      // qlConfig.middlewares = undefined;
+      // const schema_1 = server.executableSchema;
+      // const schema_2 = graphQlServerConfig.remoteSchemas;
+      // console.log("SCHEMA 1", schema_1);
+      // console.log("SCHEMA 2", schema_2);
+      // try {
+      //   const onTypeConflict = (left, right, info) => {
+      //     if (info.left.schema.version >= info.right.schema.version) {
+      //       return left;
+      //     } else {
+      //       return right;
+      //     }
+      //   };
+      //   const newSchema = mergeSchemas({
+      //     schemas: [schema_2],
+      //     onTypeConflict: onTypeConflict
+      //     // resolvers: qlConfig.resolvers
+      //   });
+      // } catch (e) {
+      //   console.log("error:", e);
+      // }
 
-  const BuildHandlerClass =
-    CustomYogaImport && CustomYogaImport.GraphQLServer
-      ? CustomYogaImport.GraphQLServer
-      : GraphQLServer;
+      // console.log(newSchema);
+      // console.log("schema_1", schema_1);
+      // // const schema_2 = graphQlServerConfig.schema;
+      // // console.log("schema_2", schema_2);
+      // // let arrSchemas = [schema_1, schema_2];
+      // const newSchema = await weaveSchemas({
+      //   endpoints: [
+      //     ...graphQlServerConfig.remoteSchemas.endpoints,
+      //     {
+      //       namespace: "local",
+      //       schema: schema_1
+      //     }
+      //   ]
+      // });
+      // // consolelog("newSchema", newSchema);
+      server = new BuildHandlerClass({
+        ...qlConfig,
+        schema: schema_1
+        // middlewares: null
+      });
+    }
 
-  let server = new BuildHandlerClass(qlConfig);
+    // console.log(server.executableSchema);
+    // console.log(
+    //   mergeSchemas({
+    //     schemas: [server.executableSchema, graphQlServerConfig.schema]
+    //   })
+    // );
 
-  // const mergeS = (qlConfig);
-  if (graphQlServerConfig.remoteSchemas) {
-    // qlConfig.typeDefs = undefined;
-    // qlConfig.resolvers = undefined;
-    // qlConfig.schemaDirectives = undefined;
-    // qlConfig.middlewares = undefined;
-    // const schema_1 = server.executableSchema;
-    // const schema_2 = graphQlServerConfig.remoteSchemas;
-    // console.log("SCHEMA 1", schema_1);
-    // console.log("SCHEMA 2", schema_2);
-    // try {
-    //   const onTypeConflict = (left, right, info) => {
-    //     if (info.left.schema.version >= info.right.schema.version) {
-    //       return left;
-    //     } else {
-    //       return right;
-    //     }
-    //   };
-    //   const newSchema = mergeSchemas({
-    //     schemas: [schema_2],
-    //     onTypeConflict: onTypeConflict
-    //     // resolvers: qlConfig.resolvers
-    //   });
-    // } catch (e) {
-    //   console.log("error:", e);
-    // }
+    // add cookie parser
+    prepareExpress(server.express, dawnship);
 
-    // console.log(newSchema);
-    // console.log("schema_1", schema_1);
-    // // const schema_2 = graphQlServerConfig.schema;
-    // // console.log("schema_2", schema_2);
-    // // let arrSchemas = [schema_1, schema_2];
-    // const newSchema = await weaveSchemas({
-    //   endpoints: [
-    //     ...graphQlServerConfig.remoteSchemas.endpoints,
-    //     {
-    //       namespace: "local",
-    //       schema: schema_1
-    //     }
-    //   ]
-    // });
-    // // consolelog("newSchema", newSchema);
-    server = new BuildHandlerClass({
-      ...qlConfig,
-      schema: schema_1
-      // middlewares: null
-    });
-  }
+    server["db"] = db;
+    server["waterline"] = db;
+    server["orm"] = db;
+    server["boot"] = bootParams =>
+      new Promise((resolve, reject) => {
+        // we check for cors settings
+        if (dawnship.config.security && dawnship.config.security["cors"]) {
+          dawnship.config.settings["cors"] = applyCors(
+            dawnship,
+            dawnship.config.security.cors
+          );
+        }
 
-  // console.log(server.executableSchema);
-  // console.log(
-  //   mergeSchemas({
-  //     schemas: [server.executableSchema, graphQlServerConfig.schema]
-  //   })
-  // );
+        if (bootParams) {
+          dawnship.config.settings = _.defaultsDeep(
+            bootParams,
+            dawnship.config.settings
+          );
 
-  // add cookie parser
-  prepareExpress(server.express, dawnship);
+          // we recheck params, not to be overwritten...
+        }
+        parseArgs(dawnship);
 
-  server["db"] = db;
-  server["waterline"] = db;
-  server["orm"] = db;
-  server["boot"] = bootParams =>
-    new Promise((resolve, reject) => {
-      // we check for cors settings
-      if (dawnship.config.security && dawnship.config.security["cors"]) {
-        dawnship.config.settings["cors"] = applyCors(
-          dawnship,
-          dawnship.config.security.cors
-        );
-      }
+        // parse cors options
 
-      if (bootParams) {
-        dawnship.config.settings = _.defaultsDeep(
-          bootParams,
-          dawnship.config.settings
-        );
-
-        // we recheck params, not to be overwritten...
-      }
-      parseArgs(dawnship);
-
-      // parse cors options
-
-      server.start(dawnship.config.settings, () => {
-        resolve({
-          port: (() => dawnship.config.settings.port)(),
-          server: server,
-          express: server.express,
-          graphQlConfig: qlConfig,
-          bootConfig: dawnship.config.settigs,
-          app: dawnship
+        server.start(dawnship.config.settings, () => {
+          resolve({
+            port: (() => dawnship.config.settings.port)(),
+            server: server,
+            express: server.express,
+            graphQlConfig: qlConfig,
+            bootConfig: dawnship.config.settigs,
+            app: dawnship
+          });
         });
       });
-    });
-  return server;
+    return server;
+  } catch (e) {
+    console.error(e);
+    process.exit(0);
+  }
 };
 export default boot;

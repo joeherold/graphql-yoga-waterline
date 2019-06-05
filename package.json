@@ -26,6 +26,7 @@
     "lodash": "^4.17.11",
     "mkdirp": "^0.5.1",
     "path-to-regexp": "^3.0.0",
+    "pretty-error": "^2.1.1",
     "sails-disk": "^1.1.0",
     "template-file": "^3.0.1",
     "vary": "^1.1.2",
