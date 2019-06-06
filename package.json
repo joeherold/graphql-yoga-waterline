@@ -1,10 +1,12 @@
 {
   "name": "graphql-yoga-waterline",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "An easy to use implementation of the graphql-yoga server, but with Waterline ORM implemented, for easy setup of db or filestore driven APIs",
   "main": "lib/index.js",
   "bin": {
-    "dawnship": "./bin/gyw.js"
+    "gyw": "./bin/gyw.js",
+    "dawnship": "./bin/gyw.js",
+    "graphql-yoga-waterline": "./bin/gyw.js"
   },
   "dependencies": {
     "@okgrow/graphql-scalars": "^0.4.3",
@@ -20,7 +22,6 @@
     "graphql": "^14.3.0",
     "graphql-middleware": "^3.0.2",
     "graphql-shield": "^5.1.2",
-    "graphql-weaver": "^0.13.3",
     "graphql-yoga": "^1.17.4",
     "inquirer": "^6.3.1",
     "lodash": "^4.17.11",
@@ -35,19 +36,20 @@
     "yargs": "^12.0.5"
   },
   "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/node": "^7.4.5",
     "@babel/polyfill": "^7.2.5",
-    "babel-cli": "^6.26.0",
+    "@babel/preset-env": "^7.4.5",
     "babel-preset-minify": "^0.5.0",
-    "babel-preset-node8": "^1.2.0",
     "dotenv": "^6.2.0",
     "nodemon": "^1.18.9",
     "rimraf": "^2.6.3"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx rimraf dist && npx babel --out-dir lib src",
-    "build:minify": "npx rimraf dist && npx babel --out-dir lib src --no-comments --minify",
-    "prepublish": "npm run build"
+    "build": "npx rimraf lib && npx babel --out-dir ./lib src",
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -64,14 +66,5 @@
   "bugs": {
     "url": "https://github.com/joeherold/graphql-yoga-waterline/issues"
   },
-  "homepage": "https://github.com/joeherold/graphql-yoga-waterline#readme",
-  "babel": {
-    "presets": [
-      "node8",
-      "minify"
-    ]
-  },
-  "engines": {
-    "node": ">=8"
-  }
+  "homepage": "https://github.com/joeherold/graphql-yoga-waterline#readme"
 }

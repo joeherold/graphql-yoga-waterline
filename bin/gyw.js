@@ -5,6 +5,7 @@ var inquirer = require("inquirer");
 var preboot = require("../lib/cli/preboot");
 var libData = require("../lib/cli/index");
 // console.log("dawnship", dawnship);
+console.log("\n");
 inquirer
   .prompt([
     {
