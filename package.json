@@ -1,10 +1,9 @@
 {
   "name": "graphql-yoga-waterline",
-  "version": "0.0.21",
+  "version": "0.0.20",
   "description": "An easy to use implementation of the graphql-yoga server, but with Waterline ORM implemented, for easy setup of db or filestore driven APIs",
   "main": "lib/index.js",
   "bin": {
-    "gyw": "./bin/gyw.js",
     "dawnship": "./bin/gyw.js"
   },
   "dependencies": {
@@ -28,7 +27,7 @@
     "mkdirp": "^0.5.1",
     "path-to-regexp": "^3.0.0",
     "pretty-error": "^2.1.1",
-    "sails-disk": "^1.1.0",
+    "sails-disk": "^1.1.2",
     "template-file": "^3.0.1",
     "vary": "^1.1.2",
     "waterline": "^0.13.6",

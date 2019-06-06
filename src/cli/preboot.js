@@ -10,27 +10,27 @@ let rootPath = path.resolve(process.cwd());
 try {
   const packageJsonPath = path.join(process.cwd(), "package.json");
 
-  const packageJdon = require(packageJsonPath);
-  // console.log(packageJdon);
+  const packageJson = require(packageJsonPath);
+  // console.log(packageJson);
   console.log(
     "\nRunnig Dawnship-CLI against: ",
-    packageJdon.name + "@" + packageJdon.version
+    packageJson.name + "@" + packageJson.version
   );
   // // throw new Error("package json");
 
   if (
-    packageJdon &&
-    packageJdon["graphql-yoga-waterline"] &&
-    packageJdon["graphql-yoga-waterline"]["customRootPath"]
+    packageJson &&
+    packageJson["graphql-yoga-waterline"] &&
+    packageJson["graphql-yoga-waterline"]["customRootPath"]
   ) {
     rootPath = path.join(
       process.cwd(),
-      packageJdon["graphql-yoga-waterline"]["customRootPath"]
+      packageJson["graphql-yoga-waterline"]["customRootPath"]
     );
 
     console.log(
       "Using custom root path: ",
-      packageJdon["graphql-yoga-waterline"]["customRootPath"]
+      packageJson["graphql-yoga-waterline"]["customRootPath"]
     );
   } else {
     console.log("\nUsing app root as root path");
