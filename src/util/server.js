@@ -1,16 +1,13 @@
 // entry file
 
 import { GraphQLServer } from "graphql-yoga";
-import { weaveSchemas } from "graphql-weaver";
+// import { weaveSchemas } from "graphql-weaver";
 import prepareExpress from "./hooks/express";
 import glob from "glob";
 import path from "path";
-import fs, { exists } from "fs";
+import fs from "fs";
 import _ from "lodash";
 import PrettyError from "pretty-error";
-const pe = new PrettyError();
-
-// import { makeExecutableSchema, mergeSchemas } from "graphql-tools";
 
 import OKGGraphQLScalars, {
   OKGScalarDefinitions
@@ -38,25 +35,19 @@ const bootMessage = fs.readFileSync(
  */
 import { shield } from "../util/shield";
 
-import {
-  makeExecutableSchema,
-  mergeSchemas,
-  makeRemoteExecutableSchema,
-  transformSchema,
-  RenameTypes
-} from "graphql-tools";
-
-// export const YogaGraphQLServer = GraphQLServer;
-
 // boot up the application as pormise
 const boot = async (
   graphQlServerConfig = {},
   customRootPath = undefined,
   CustomYogaImport
 ) => {
+  // make errors more readable
+  const pe = new PrettyError();
+  // we start it in general, to make all error messages
+  // beeing prettyfied
   pe.start();
-  pe.skipNodeFiles();
-  // pe.skipPackage("graphql");
+  // pe.skipNodeFiles();
+
   try {
     /**
      * determine the root path of the application
@@ -84,9 +75,6 @@ const boot = async (
      */
     if (dawnship.env !== "production") {
       console.log(bootMessage);
-      // for (let line of bootMessage) {
-      //   console.log(line);
-      // }
     }
 
     /**
