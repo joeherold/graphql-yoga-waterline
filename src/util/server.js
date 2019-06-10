@@ -52,32 +52,35 @@ const boot = async (
     /**
      * determine the root path of the application
      */
-    let rootPath = "";
+    let rootPath = customRootPath | path.resolve(process.cwd());
+    try {
+      /**
+       * check if rootPath is set in package.json of executing application
+       * but only, if noc custom path is passed to the application creator
+       */
+      const packageJsonPath = path.join(process.cwd(), "package.json");
+      const packageJson = require(packageJsonPath);
 
-    /**
-     * check if rootPath is set in package.json of executing application
-     * but only, if noc custom path is passed to the application creator
-     */
-    const packageJsonPath = path.join(process.cwd(), "package.json");
-    const packageJson = require(packageJsonPath);
-
-    // check package.json
-    if (
-      packageJson &&
-      packageJson["graphql-yoga-waterline"] &&
-      packageJson["graphql-yoga-waterline"]["customRootPath"] &&
-      !customRootPath
-    ) {
-      rootPath = path.join(
-        process.cwd(),
-        packageJson["graphql-yoga-waterline"]["customRootPath"]
-      );
-    } else if (customRootPath) {
-      rootPath = path.resolve(customRootPath);
-    } else {
-      rootPath = path.resolve(process.cwd());
+      // check package.json
+      if (
+        packageJson &&
+        packageJson["graphql-yoga-waterline"] &&
+        packageJson["graphql-yoga-waterline"]["customRootPath"] &&
+        !customRootPath
+      ) {
+        rootPath = path.join(
+          process.cwd(),
+          packageJson["graphql-yoga-waterline"]["customRootPath"]
+        );
+      } else if (customRootPath) {
+        rootPath = customRootPath;
+      } else {
+        rootPath = path.resolve(process.cwd());
+      }
+    } catch (e) {
+      console.error("Error in reading package.json stuff");
+      console.error(e);
     }
-
     /**
      * first generate the globals variable;
      */
@@ -169,9 +172,11 @@ const boot = async (
         path.join(dawnship.root, "api/schema/**/*.graphql"),
         (err, files) => {
           if (err) {
+            console.error(err);
             reject(err);
           }
           if (files) {
+            // console.log("files: ", files);
             resolve(files);
           }
         }
