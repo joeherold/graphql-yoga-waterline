@@ -107,7 +107,9 @@ const boot = async (
     /**
      * set the process name
      */
-    process.title = dawnship.processTitle;
+    if (dawnship.processTitle) {
+      process.title = dawnship.processTitle;
+    }
 
     /**
      * check the file Structure

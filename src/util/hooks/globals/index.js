@@ -1,8 +1,13 @@
-export const createGlobals = (rootPath, processTitle) => {
+export const createGlobals = (rootPath, processTitle = "@dawnship/server") => {
+  // console.log(process.title);
+  if (process.title && process.title !== "node" && process.title !== "") {
+    processTitle = undefined;
+  }
+
   global.dawnship = {
     debug: false,
     root: rootPath,
-    processTitle: processTitle || "GraphQL Waterline Server",
+    processTitle,
     env: "dev",
     config: {
       adapters: undefined,
