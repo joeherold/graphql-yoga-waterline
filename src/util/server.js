@@ -131,12 +131,13 @@ const boot = async (
     const config = await configReader(dawnship);
 
     dawnship.config = _.defaultsDeep(config, dawnship.config);
-
+    // console.log("dawnship.hooks", dawnship.hooks);
     // console.log(dawnship.config.policies.rules);
     let shieldMiddleware = undefined;
     if (
       dawnship.config.policies.rules &&
-      dawnship.config.policies.rules.length > 0
+      (dawnship.config.policies.rules.length ||
+        Object.keys(dawnship.config.policies.rules).length > 0)
     ) {
       shieldMiddleware = shield(dawnship.config.policies.rules, {
         allowExternalErrors: dawnship.config.policies.allowExternalErrors,
@@ -145,7 +146,7 @@ const boot = async (
         fallbackError: dawnship.config.policies.fallbackError
       });
     }
-    // console.log(shieldMiddleware);
+    // console.log("shieldMiddleware", shieldMiddleware);
 
     // parse Environment and cli params
     parseArgs(dawnship);

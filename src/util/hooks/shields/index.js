@@ -8,18 +8,24 @@ const getShieldPolicies = async () => {};
 
 export const getPolicies = async dawnship => {
   let policies = await new Promise(async (resolve, reject) => {
+    // console.log(
+    //   "getPolicies @ ",
+    //   path.join(dawnship.root, "/api/policies/*.js")
+    // );
     glob(path.join(dawnship.root, "/api/policies/*.js"), (err, files) => {
       let rules = {};
       if (err) {
+        // console.error(err);
         reject(err);
       }
       if (files) {
         // console.log(files);
         for (let file of files) {
           let filename = path.basename(file, ".js");
+          // console.log(file);
           let mod = require(file);
           //   console.log("typeof mod: ", typeof mod);
-          //   console.log("mod: ", mod);
+          // console.log("mod: ", mod);
           if (typeof mod === "function") {
             rules[filename] = rule()(mod);
           } else if (
@@ -37,6 +43,7 @@ export const getPolicies = async dawnship => {
             continue;
           }
         }
+        // console.log("rules", rules);
         resolve(rules);
       }
     });
