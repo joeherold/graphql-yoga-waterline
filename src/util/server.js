@@ -26,6 +26,7 @@ import { getPolicies } from "./hooks/shields";
 import { applyCors } from "./hooks/cors";
 import { createGlobals } from "./hooks/globals";
 import { initLogger } from "./hooks/logger";
+import { toJsonMiddleware } from "./hooks/middelwares/toJSON";
 const bootMessage = fs.readFileSync(
   path.join(__dirname, "../../templates/banner.txt.tpl"),
   "utf8"
@@ -227,7 +228,9 @@ const boot = async (
         };
       },
       schemaDirectives: undefined,
-      middlewares: shieldMiddleware ? [shieldMiddleware] : []
+      middlewares: shieldMiddleware
+        ? [shieldMiddleware, toJsonMiddleware]
+        : [toJsonMiddleware]
     };
 
     let qlConfig = {
