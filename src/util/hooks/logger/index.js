@@ -1,4 +1,6 @@
-import { red, blue, green } from "cli-color";
+// import { red, blue, green } from "cli-color";
+import clc from "colors/safe";
+
 import { inspect } from "util";
 
 function localInspect(data) {
@@ -12,25 +14,25 @@ function localInspect(data) {
 // };
 
 export function log(...args) {
-  console.log(green("INFO: "), ...args);
+  console.log(clc.green("INFO: "), ...args);
   // const spreader = localInspect(args);
   // console.log();
   // this.trace();
 }
 
 export function error(...args) {
-  console.log(red("ERROR: "), ...args);
+  console.log(clc.red("ERROR: "), ...args);
   // const spreader = localInspect(args);
   // console.error(...spreader);
 }
 export function warn(...args) {
-  console.log(red("WARN: "), ...args);
+  console.log(clc.red("WARN: "), ...args);
   // const spreader = localInspect(args);
   // console.error(...spreader);
 }
 
 export function debug(...args) {
-  console.log(blue("DEBUG: "), ...args);
+  console.log(clc.blue("DEBUG: "), ...args);
   // const spreader = localInspect(args);
   // console.log(...spreader);
 }

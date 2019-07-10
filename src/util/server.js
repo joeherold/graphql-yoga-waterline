@@ -1,6 +1,8 @@
 // entry file
 
-import { GraphQLServer } from "graphql-yoga";
+import { GraphQLServerOld } from "graphql-yoga";
+import GraphQLServer from "./GraphQLServer";
+
 // import { weaveSchemas } from "graphql-weaver";
 import prepareExpress from "./hooks/express";
 import glob from "glob";
@@ -40,13 +42,15 @@ import { shield } from "../util/shield";
 const boot = async (
   graphQlServerConfig = {},
   customRootPath = undefined,
-  CustomYogaImport
+  useOldYogaVersion
 ) => {
   // make errors more readable
   const pe = new PrettyError();
   // we start it in general, to make all error messages
   // beeing prettyfied
-  pe.start();
+
+  // pe.start();
+
   // pe.skipNodeFiles();
 
   try {
@@ -218,11 +222,17 @@ const boot = async (
       resolverValidationOptions: undefined,
       // schema: null, // not supported yet...
       mocks: undefined,
-      context: req => {
+      context: ctxArgs => {
+        const req = ctxArgs.req ? ctxArgs.req : ctxArgs.request;
+        const res = ctxArgs.res ? ctxArgs.res : ctxArgs.response;
         return {
-          ...req,
-          req: req.request,
-          res: req.response,
+          req: req,
+          res: res,
+          request: req,
+          response: res,
+          // request: ctxArgs.req | ctxArgs.request,
+          // response: ctxArgs.res | ctxArgs.response,
+          ...ctxArgs,
           db,
           getModel: db.model
         };
@@ -246,10 +256,10 @@ const boot = async (
         graphQlServerConfig.resolverValidationOptions || undefined,
 
       mocks: graphQlServerConfig.mocks || undefined,
-      context: attr => {
+      context: async attr => {
         if (typeof graphQlServerConfig.context === "function") {
           return default_graphQlServerConfig.context(
-            graphQlServerConfig.context(attr)
+            await graphQlServerConfig.context(attr)
           );
         } else if (typeof graphQlServerConfig.context === "object") {
           return default_graphQlServerConfig.context({
@@ -269,12 +279,12 @@ const boot = async (
     };
 
     const BuildHandlerClass =
-      CustomYogaImport && CustomYogaImport.GraphQLServer
-        ? CustomYogaImport.GraphQLServer
+      useOldYogaVersion && useOldYogaVersion === true
+        ? GraphQLServerOld
         : GraphQLServer;
 
+    // console.log("config: ", { ...qlConfig });
     let server = new BuildHandlerClass(qlConfig);
-
     // const mergeS = (qlConfig);
     if (graphQlServerConfig.remoteSchemas) {
       // qlConfig.typeDefs = undefined;
