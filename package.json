@@ -9,7 +9,10 @@
     "graphql-yoga-waterline": "./bin/gyw.js"
   },
   "dependencies": {
-    "@okgrow/graphql-scalars": "^0.4.3",
+    "@apollo/federation": "^0.6.10",
+    "@apollographql/apollo-tools": "^0.4.0",
+    "@okgrow/graphql-scalars": "^0.4.5",
+    "apollo-server": "^2.6.9",
     "apollo-server-express": "^2.6.8",
     "async": "^3.1.0",
     "body-parser": "^1.19.0",
@@ -31,9 +34,11 @@
     "inquirer": "^6.3.1",
     "lodash": "^4.17.13",
     "mkdirp": "^0.5.1",
+    "patch-package": "^6.1.2",
     "path-to-regexp": "^3.0.0",
     "pretty-error": "^2.1.1",
     "sails-disk": "^1.1.2",
+    "subscriptions-transport-ws": "^0.9.16",
     "template-file": "^3.0.1",
     "vary": "^1.1.2",
     "waterline": "^0.13.6",
@@ -54,6 +59,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx rimraf lib && npx babel --out-dir ./lib src",
+    "postinstall": "patch-package",
     "prepublishOnly": "npm run build"
   },
   "repository": {

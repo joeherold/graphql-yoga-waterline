@@ -42,8 +42,22 @@ import { shield } from "../util/shield";
 const boot = async (
   graphQlServerConfig = {},
   customRootPath = undefined,
-  useOldYogaVersion
+  useOldYogaVersion = false
 ) => {
+  let OKGGraphQLScalarsModified = _.omit(OKGGraphQLScalars, [
+    "UnsignedFloat",
+    "UnsignedInt"
+  ]);
+
+  // console.log(OKGGraphQLScalarsModified);
+  const OKGScalarDefinitionsModified = OKGScalarDefinitions.filter(
+    item => item !== "scalar UnsignedFloat" && item !== "scalar UnsignedInt"
+  );
+
+  // console.log({
+  //   resolvers: OKGGraphQLScalarsModified.UnsignedFloat,
+  //   typeDefs: OKGScalarDefinitionsModified
+  // });
   // make errors more readable
   const pe = new PrettyError();
   // we start it in general, to make all error messages
@@ -214,9 +228,9 @@ const boot = async (
     // add cors middleware
 
     let default_graphQlServerConfig = {
-      typeDefs: [...OKGScalarDefinitions, ...typeDefs],
+      typeDefs: [...OKGScalarDefinitionsModified, ...typeDefs],
       resolvers: {
-        ...OKGGraphQLScalars,
+        ...OKGGraphQLScalarsModified,
         ...resolvers
       },
       resolverValidationOptions: undefined,
@@ -369,7 +383,7 @@ const boot = async (
 
         // parse cors options
 
-        server.start(dawnship.config.settings, () => {
+        server.start(dawnship.config.settings, err => {
           resolve({
             port: (() => dawnship.config.settings.port)(),
             server: server,
@@ -378,6 +392,7 @@ const boot = async (
             bootConfig: dawnship.config.settigs,
             app: dawnship
           });
+          reject(err);
         });
       });
     return server;

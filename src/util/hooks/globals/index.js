@@ -24,7 +24,7 @@ export const createGlobals = (rootPath, processTitle = "@dawnship/server") => {
       settings: {
         port: 4000,
         endpoint: "/",
-        subscriptions: false,
+        subscriptions: true,
         playground: "/",
         defaultPlaygroundQuery: undefined,
         uploads: undefined,
