@@ -83,7 +83,7 @@ export default class GraphQLServer {
             .reduce(mergeDeep, {})
         : resolversStack;
 
-      console.log("resolverMap:\n", resolverMap);
+      // console.log("resolverMap:\n", resolverMap);
       // We allow passing in an array of resolver maps, in which case we merge them
 
       this.executableSchema = buildFederatedSchema([
