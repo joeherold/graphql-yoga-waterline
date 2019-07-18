@@ -119,24 +119,24 @@ export default class GraphQLServer {
       //   resolverValidationOptions
       // });
 
-      // if (mocks) {
-      //   addMockFunctionsToSchema({
-      //     schema: this.executableSchema,
-      //     mocks: typeof mocks === "object" ? mocks : undefined,
-      //     preserveResolvers: false
-      //   });
-      // }
+      if (mocks) {
+        addMockFunctionsToSchema({
+          schema: this.executableSchema,
+          mocks: typeof mocks === "object" ? mocks : undefined,
+          preserveResolvers: false
+        });
+      }
     }
 
-    // if (props.middlewares) {
-    //   const { schema, fragmentReplacements } = applyFieldMiddleware(
-    //     this.executableSchema,
-    //     ...props.middlewares
-    //   );
+    if (props.middlewares) {
+      const { schema, fragmentReplacements } = applyFieldMiddleware(
+        this.executableSchema,
+        ...props.middlewares
+      );
 
-    //   this.executableSchema = schema;
-    //   this.middlewareFragmentReplacements = fragmentReplacements;
-    // }
+      this.executableSchema = schema;
+      this.middlewareFragmentReplacements = fragmentReplacements;
+    }
   }
   async start(options, callback) {
     // console.log("start with options: ", options);
