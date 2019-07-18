@@ -2,6 +2,7 @@
 
 import { GraphQLServerOld } from "graphql-yoga";
 import GraphQLServer from "./GraphQLServer";
+import { ApolloError } from "apollo-server-errors";
 
 // import { weaveSchemas } from "graphql-weaver";
 import prepareExpress from "./hooks/express";
@@ -37,7 +38,11 @@ const bootMessage = fs.readFileSync(
  * IMPORT SHIELD
  */
 import { shield } from "../util/shield";
-
+import log, { setDefaultLevel } from "../util/log";
+if (!global.log) {
+  global.log = log;
+  setDefaultLevel();
+}
 // boot up the application as pormise
 const boot = async (
   graphQlServerConfig = {},
@@ -397,8 +402,7 @@ const boot = async (
       });
     return server;
   } catch (e) {
-    console.error(e);
-    process.exit(0);
+    throw new ApolloError(e.message, "INTERNAL_SERVER_ERROR");
   }
 };
 export default boot;
