@@ -28,6 +28,10 @@ export default class GraphQLServer {
   constructor(props) {
     this.typeDefs = props.typeDefs;
     this.resolvers = props.resolvers;
+    this.tracing = props.tracing;
+    this.cacheControl = props.cacheControl;
+    this.engine = props.engine;
+    this.subscriptions = props.subscriptions;
     this.context = props.context;
 
     this.middlewares = props.middlewares;
@@ -197,8 +201,8 @@ export default class GraphQLServer {
 
         // playground: options.playground ? options.playground : false,
 
-        tracing: options.tracing,
-        subscriptions: true
+        // tracing: options.tracing,
+        subscriptions: options.subscriptions || this.subscriptions || true,
         // subscriptions: options.subscriptions
         // subscriptions: {
         //   path: "/subscriptions",
@@ -215,7 +219,11 @@ export default class GraphQLServer {
         //     console.log(webSocket, context);
         //   }
         // }
+        tracing: getTracingConfig(this, options),
+        cacheControl: getCacheControlConfig(this, options),
+        engine: getEngineConfig(this, options)
       };
+
       // console.log("apolloServerConfig", apolloServerConfig);
       const server = new ApolloServer(apolloServerConfig);
 
@@ -389,4 +397,35 @@ function mergeDeep(target, source) {
 
 function isObject(item) {
   return item && typeof item === "object" && !Array.isArray(item);
+}
+
+function getTracingConfig(ServerObj, bootOpts) {
+  let tracing = true;
+  if (typeof ServerObj.tracing !== "undefined") {
+    tracing = ServerObj.tracing;
+  }
+  if (typeof bootOpts.tracing !== "undefined") {
+    tracing = bootOpts.tracing;
+  }
+  return tracing;
+}
+function getEngineConfig(ServerObj, bootOpts) {
+  let engine = true;
+  if (typeof ServerObj.engine !== "undefined") {
+    engine = ServerObj.engine;
+  }
+  if (typeof bootOpts.tracing !== "undefined") {
+    engine = bootOpts.engine;
+  }
+  return engine;
+}
+function getCacheControlConfig(ServerObj, bootOpts) {
+  let cacheControl = true;
+  if (typeof ServerObj.cacheControl !== "undefined") {
+    cacheControl = ServerObj.cacheControl;
+  }
+  if (typeof bootOpts.cacheControl !== "undefined") {
+    cacheControl = bootOpts.cacheControl;
+  }
+  return cacheControl;
 }
