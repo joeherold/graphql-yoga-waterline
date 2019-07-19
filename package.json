@@ -1,7 +1,7 @@
 {
   "name": "graphql-yoga-waterline",
-  "version": "0.1.6",
-  "description": "An easy to use implementation of graphql apollo server 2 , but with Waterline ORM implemented, for easy setup of db or filestore driven APIs",
+  "version": "0.1.7",
+  "description": "An easy to use implementation of graphql apollo server 2.x , but with Waterline ORM implemented, for easy setup of db or filestore driven APIs",
   "main": "lib/index.js",
   "bin": {
     "gyw": "./bin/gyw.js",
