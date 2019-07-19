@@ -33,7 +33,7 @@
     "graphql-tools": "^4.0.5",
     "graphql-yoga": "^1.18.1",
     "inquirer": "^6.5.0",
-    "lodash": "^4.17.14",
+    "lodash": "^4.17.15",
     "loglevel": "^1.6.3",
     "mkdirp": "^0.5.1",
     "patch-package": "^6.1.2",
