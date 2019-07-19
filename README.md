@@ -3,12 +3,20 @@
 # graphql-yoga-waterline
 
 Fully-featured GraphQL Server with focus on easy setup, performance & great developer experience
+## Breaking changes
+This library is shifted to Apollo Server 2.0 and is not using graphql-yoga by prisma anymore, because of their usage of Apollo Server 1.0.
+Apollo Server 2.0 is much improved in many ways and took over some best practices from graphql-yoga. As an example of the Apollo Server 2.0, the error handling is much improoved. So you can create Error Codes, you may pass along to the client to generate i18n language depeneded Error Message. [Apollo Error Handling](https://www.apollographql.com/docs/apollo-server/features/errors/)
+
+Actually, this Application now is also capable to be used with Apollo 2.0 Gateway, to create one API Gateway to hook together multiple Graphql Services (Micro Services), according to use the federated Schema ( [What is Apollo Federation?](https://www.apollographql.com/docs/apollo-server/federation/introduction/) ).
+You are also able to use Managed federation: [Announcing managed federation](https://blog.apollographql.com/announcing-managed-federation-265c9f0bc88e).
+
+Full Documentation of Apollo you may find [here: Apollo Docs](https://www.apollographql.com/docs/apollo-server/)
 
 ## Overview
 
 [<img title="waterline-logo" src="http://i.imgur.com/3Xqh6Mz.png" width="610px" alt="Waterline logo"/>](http://waterlinejs.org)
 
-An easy implementation of the [graphql-yoga](https://github.com/prisma/graphql-yoga) server, but enhanced with an super easy usage of the great [Waterline ORM](http://waterlinejs.org/).
+An easy implementation of the [Apollo Server 2.x](https://www.apollographql.com/) server, but enhanced with an super easy usage of the great [Waterline ORM](http://waterlinejs.org/).
 
 ## Features
 
@@ -126,7 +134,7 @@ const yogaServer = require("graphql-yoga-waterline");
 ```js
 var aContextServiceProcvoder = requrie("my-service-provider");
 
-// for furthor information see: https://github.com/prisma/graphql-yoga#graphqlserver
+// for furthor information see: https://www.apollographql.com/docs/apollo-server/api/apollo-server/
 
 let graphQLServerOpts = {
   // typeDefs: Contains GraphQL type definitions in SDL or file
@@ -191,8 +199,8 @@ The `props` argument accepts the following fields:
 
 > (\*) **!! YET NOT SUPPORTED !!** , but when supported, there are two major ways of providing the [schema](https://blog.graph.cool/graphql-server-basics-the-schema-ac5e2950214e) information to the `constructor`:
 >
-> 1.  Provide `typeDefs` and `resolvers` and omit the `schema`, in this case `graphql-yoga` will construct the `GraphQLSchema` instance using [`makeExecutableSchema`](https://www.apollographql.com/docs/graphql-tools/generate-schema.html#makeExecutableSchema) from [`graphql-tools`](https://github.com/apollographql/graphql-tools).
-> 2.  Provide the `schema` directly and omit `typeDefs` and `resolvers`.
+> 1.  Provide `typeDefs` and `resolvers` and omit the `schema`, in this case `graphql-yoga-waterline` will construct the `GraphQLSchema` instance using [`buildFederatedSchema`](https://www.apollographql.com/docs/apollo-server/api/apollo-federation/) from [`@apollo/federation`](https://github.com/apollographql/apollo-server/tree/master/packages/apollo-federation).
+> 2.  Provide the `schema` directly and omit `typeDefs` and `resolvers`. We recommend to use [`buildFederatedSchema`](https://www.apollographql.com/docs/apollo-server/api/apollo-federation/) to be able to use it in an API Gateway with Apollo Gateway
 
 > (\*\*) Notice that the `req` argument is an object of the shape `{ request, response, connection }` which either carries a `request: Request` property (when it's a `Query`/`Mutation` resolver), `response: Response` property (when it's a `Query`/`Mutation` resolver), or a `connection: SubscriptionOptions` property (when it's a `Subscription` resolver). [`Request`](http://expressjs.com/en/api.html#req) is imported from Express.js. [`Response`](http://expressjs.com/en/api.html#res) is imported from Express.js aswell. `SubscriptionOptions` is from the [`graphql-subscriptions`](https://github.com/apollographql/graphql-subscriptions) package. `SubscriptionOptions` are getting the `connectionParams` automatically injected under `SubscriptionOptions.context.[CONNECTION_PARAMETER_NAME]`
 
@@ -220,7 +228,8 @@ Additionally, the `options` object exposes these `apollo-server` options:
 | Key               | Type                 | Note                                                                                                                                                                                                                                                                                                                                 |
 | ----------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `cacheControl`    | Boolean              | Enable extension that returns Cache Control data in the response                                                                                                                                                                                                                                                                     |
-| `formatError`     | Number               | A function to apply to every error before sending the response to clients. Defaults to [defaultErrorFormatter](https://github.com/graphcool/graphql-yoga/blob/master/src/defaultErrorFormatter.ts). Please beware, that if you override this, `requestId` and `code` on errors won't automatically be propagated to your yoga server |
+| `formatError`     | Number               | A function to apply to every error before sending the response to clients. See [API Reference: apollo-server
+](https://www.apollographql.com/docs/apollo-server/api/apollo-server/#parameters). Please beware, that if you override this, `requestId` and `code` on errors won't automatically be propagated to your graphql-yoga-waterline server |
 | `logFunction`     | LogFunction          | A function called for logging events such as execution times                                                                                                                                                                                                                                                                         |
 | `rootValue`       | any                  | RootValue passed to GraphQL execution                                                                                                                                                                                                                                                                                                |
 | `validationRules` | Array of functions   | Additional GraphQL validation rules to be applied to client-specified queries                                                                                                                                                                                                                                                        |
